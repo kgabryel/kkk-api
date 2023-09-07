@@ -1,0 +1,17 @@
+
+###> symfony/framework-bundle ###
+/src/.env.local
+/src/.env.local.php
+/src/.env.*.local
+/src/.env
+/src/config/secrets/prod/prod.decrypt.private.php
+/src/public/bundles/
+/src/var/
+/src/vendor/
+/src/config/jwt/*.pem
+###< symfony/framework-bundle ###
+/.idea
+/docker/pgdata
+/docker/logs
+/docker/ssl/localhost.*
+/src/files/
