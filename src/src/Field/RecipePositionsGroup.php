@@ -30,7 +30,7 @@ class RecipePositionsGroup extends AbstractType
                     'entry_type' => RecipePosition::class,
                     'allow_add' => true,
                     'constraints' => [
-                        new Callback(function ($value, ExecutionContext $context) {
+                        new Callback(function($value, ExecutionContext $context) {
                             /** @var RecipePositionModel[] $positions */
                             $positions = $context->getValue();
                             foreach ($positions as $position) {

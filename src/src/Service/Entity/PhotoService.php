@@ -4,13 +4,14 @@ namespace App\Service\Entity;
 
 use App\Config\PhotoType;
 use App\Entity\Photo;
+use App\Entity\Recipe;
 use App\Entity\User;
 use App\Repository\PhotoRepository;
+use App\Service\UserService;
 use App\Utils\PhotoUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class PhotoService extends EntityService
 {
@@ -21,12 +22,12 @@ class PhotoService extends EntityService
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        TokenStorageInterface $tokenStorage,
+        UserService $userService,
         PhotoRepository $photoRepository,
         Filesystem $filesystem,
         KernelInterface $kernel
     ) {
-        parent::__construct($entityManager, $tokenStorage);
+        parent::__construct($entityManager, $userService);
         $this->photoRepository = $photoRepository;
         $this->filesystem = $filesystem;
         $this->kernel = $kernel;
@@ -34,12 +35,16 @@ class PhotoService extends EntityService
 
     public static function checkAccess(Photo $photo, ?User $user): bool
     {
+        /** @var Recipe $recipe */
         $recipe = $photo->getRecipe();
         if ($recipe->isPublic()) {
             return true;
         }
 
-        return $photo->getUser()->getId() === $user?->getId();
+        /** @var User $photoUser */
+        $photoUser = $photo->getUser();
+
+        return $photoUser->getId() === $user?->getId();
     }
 
     public function set(Photo $photo): self

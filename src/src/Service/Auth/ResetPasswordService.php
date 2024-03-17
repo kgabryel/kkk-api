@@ -2,6 +2,7 @@
 
 namespace App\Service\Auth;
 
+use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Utils\PathUtils;
 use Doctrine\ORM\EntityManagerInterface;
@@ -73,6 +74,7 @@ class ResetPasswordService
         UserPasswordEncoderInterface $passwordEncoder,
         EntityManagerInterface $entityManager
     ): void {
+        /** @var User $user */
         $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
         $this->resetPasswordHelper->removeResetRequest($token);
         $encodedPassword = $passwordEncoder->encodePassword($user, $this->form->getData()->getNewPassword());

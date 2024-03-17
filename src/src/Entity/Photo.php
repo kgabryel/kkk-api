@@ -112,7 +112,7 @@ class Photo
         return $this->user;
     }
 
-    public function setUser(?User $user): self
+    public function setUser(User $user): self
     {
         $this->user = $user;
 
@@ -124,7 +124,7 @@ class Photo
         return $this->recipe;
     }
 
-    public function setRecipe(?Recipe $recipe): self
+    public function setRecipe(Recipe $recipe): self
     {
         $this->recipe = $recipe;
 

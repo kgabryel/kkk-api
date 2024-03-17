@@ -28,7 +28,7 @@ class SerializeService
         $class = new ReflectionClass($dtoName);
         if (!$class->implementsInterface(DtoInterface::class)) {
             throw new InvalidArgumentException(
-                printf(
+                sprintf(
                     'Class "%s" doesn\'t implements "%s" interface',
                     $dtoName,
                     DtoInterface::class

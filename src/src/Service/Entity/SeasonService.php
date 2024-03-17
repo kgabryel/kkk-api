@@ -5,10 +5,10 @@ namespace App\Service\Entity;
 use App\Entity\Season;
 use App\Model\UpdateSeason;
 use App\Repository\SeasonRepository;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class SeasonService extends EntityService
 {
@@ -17,10 +17,10 @@ class SeasonService extends EntityService
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        TokenStorageInterface $tokenStorage,
+        UserService $userService,
         SeasonRepository $seasonRepository
     ) {
-        parent::__construct($entityManager, $tokenStorage);
+        parent::__construct($entityManager, $userService);
         $this->seasonRepository = $seasonRepository;
     }
 

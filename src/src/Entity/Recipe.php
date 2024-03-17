@@ -336,12 +336,7 @@ class Recipe
 
     public function removePhoto(Photo $photo): self
     {
-        if ($this->photos->removeElement($photo)) {
-            // set the owning side to null (unless already changed)
-            if ($photo->getRecipe() === $this) {
-                $photo->setRecipe(null);
-            }
-        }
+        $this->photos->removeElement($photo);
 
         return $this;
     }

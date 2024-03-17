@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Entity\User;
 use App\Repository\ApiKeyRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,7 +37,7 @@ class ApiAuthenticator extends AbstractGuardAuthenticator
         return $request->headers->get(self::AUTH_HEADER);
     }
 
-    public function getUser($credentials, UserProviderInterface $userProvider)
+    public function getUser(mixed $credentials, UserProviderInterface $userProvider): ?User
     {
         $key = $this->apiKeyRepository->findOneBy([
             'key' => $credentials,
@@ -46,7 +47,7 @@ class ApiAuthenticator extends AbstractGuardAuthenticator
         return $key?->getUser();
     }
 
-    public function checkCredentials($credentials, UserInterface $user): bool
+    public function checkCredentials(mixed $credentials, UserInterface $user): bool
     {
         return true;
     }
@@ -56,9 +57,9 @@ class ApiAuthenticator extends AbstractGuardAuthenticator
         return new Response(null, Response::HTTP_UNAUTHORIZED);
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey)
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey): ?Response
     {
-        return;
+        return null;
     }
 
     public function supportsRememberMe(): bool

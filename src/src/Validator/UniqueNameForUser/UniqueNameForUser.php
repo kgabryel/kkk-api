@@ -6,36 +6,25 @@ use App\Entity\User;
 use App\Repository\FindOneByNameWithLowercaseInterface;
 use Symfony\Component\Validator\Constraint;
 
-/**
- * @Annotation
- */
 class UniqueNameForUser extends Constraint
 {
-    public const REPOSITORY_OPTION = 'repository';
-    public const USER_OPTION = 'user';
-    public const COLUMN_OPTION = 'column';
-    public const EXPECT_OPTION = 'expect';
-    public string $message;
     private FindOneByNameWithLowercaseInterface $repository;
     private User $user;
     private string $column;
     private int $expect;
 
-    public function __construct(array $options = [])
-    {
-        $this->message = '';
-        $this->repository = $options[self::REPOSITORY_OPTION];
-        $this->user = $options[self::USER_OPTION];
-        $this->column = $options[self::COLUMN_OPTION];
-        $this->expect = $options[self::EXPECT_OPTION] ?? 0;
-        parent::__construct($this->clearOptionsArray($options));
-    }
-
-    private function clearOptionsArray(array $options): array
-    {
-        unset($options[self::REPOSITORY_OPTION], $options[self::USER_OPTION], $options[self::COLUMN_OPTION], $options[self::EXPECT_OPTION]);
-
-        return $options;
+    public function __construct(
+        FindOneByNameWithLowercaseInterface $repository,
+        User $user,
+        string $column,
+        int $expect = 0,
+        array $options = []
+    ) {
+        $this->repository = $repository;
+        $this->user = $user;
+        $this->column = $column;
+        $this->expect = $expect;
+        parent::__construct($options);
     }
 
     public function getRepository(): FindOneByNameWithLowercaseInterface

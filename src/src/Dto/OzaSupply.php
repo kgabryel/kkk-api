@@ -17,7 +17,7 @@ class OzaSupply implements DtoInterface
         $this->amount = $amount;
     }
 
-    public static function createFromEntity($entity): DtoInterface
+    public static function createFromEntity(mixed $entity): DtoInterface
     {
         $amount = sprintf('%s%s', $entity->amount, $entity->unit->shortcut);
 

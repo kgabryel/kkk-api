@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Entity\User as UserEntity;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class User
@@ -35,16 +36,11 @@ class User
         $this->password = $password;
     }
 
-    public function getUser(UserPasswordEncoderInterface $passwordEncoder): \App\Entity\User
+    public function getUser(UserPasswordEncoderInterface $passwordEncoder): UserEntity
     {
-        $user = new \App\Entity\User();
+        $user = new UserEntity();
         $user->setEmail($this->email);
-        $user->setPassword(
-            $passwordEncoder->encodePassword(
-                $user,
-                $this->password
-            )
-        );
+        $user->setPassword($passwordEncoder->encodePassword($user, $this->password));
 
         return $user;
     }

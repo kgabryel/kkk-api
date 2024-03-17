@@ -30,7 +30,6 @@ class PhotosController extends BaseController
         PhotoRepository $photoRepository,
         KernelInterface $kernel
     ): Response {
-        /** @var Photo $photo */
         $photo = $photoRepository->find($photoId);
         if ($photo === null) {
             return new Response(null, Response::HTTP_FORBIDDEN);
@@ -40,8 +39,9 @@ class PhotosController extends BaseController
         }
         $response = new Response();
         $response->headers->set('Content-Type', $photo->getType());
+        $fileName = $photo->getFileName() ?? '';
         $response->setContent(
-            file_get_contents(PhotoUtils::getPath($kernel->getProjectDir(), $type, $photo->getFileName()))
+            (string)file_get_contents(PhotoUtils::getPath($kernel->getProjectDir(), $type, $fileName))
         );
 
         return $response;
@@ -69,6 +69,7 @@ class PhotosController extends BaseController
         if (!$photoService->find($photoId)) {
             return new Response(null, Response::HTTP_NOT_FOUND);
         }
+        /** @var Photo $recipe */
         $recipe = $photoService->getPhoto()->getRecipe();
         $photoService->remove();
 

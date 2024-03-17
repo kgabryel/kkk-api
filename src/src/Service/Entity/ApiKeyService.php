@@ -4,8 +4,8 @@ namespace App\Service\Entity;
 
 use App\Entity\ApiKey;
 use App\Repository\ApiKeyRepository;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class ApiKeyService extends EntityService
 {
@@ -14,10 +14,10 @@ class ApiKeyService extends EntityService
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        TokenStorageInterface $tokenStorage,
+        UserService $userService,
         ApiKeyRepository $apiKeyRepository
     ) {
-        parent::__construct($entityManager, $tokenStorage);
+        parent::__construct($entityManager, $userService);
         $this->apiKeyRepository = $apiKeyRepository;
     }
 

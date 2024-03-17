@@ -23,11 +23,11 @@ class ApiKey implements DtoInterface
      *
      * @return self
      */
-    public static function createFromEntity($entity): DtoInterface
+    public static function createFromEntity(mixed $entity): DtoInterface
     {
         if (!($entity instanceof Entity)) {
             throw new InvalidArgumentException(
-                printf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
+                sprintf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
             );
         }
 

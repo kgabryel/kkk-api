@@ -7,12 +7,12 @@ use App\Entity\Recipe;
 use App\Model\RecipePosition as Model;
 use App\Repository\IngredientRepository;
 use App\Repository\RecipeRepository;
+use App\Service\UserService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Validator\Constraints\GreaterThan;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -24,10 +24,10 @@ class RecipePosition extends AbstractType
 
     public function __construct(
         IngredientRepository $ingredientRepository,
-        TokenStorageInterface $tokenStorage,
+        UserService $userService,
         RecipeRepository $recipeRepository
     ) {
-        $user = $tokenStorage->getToken()->getUser();
+        $user = $userService->getUser();
         $this->ingredients = $ingredientRepository->findForUser($user);
         $this->recipes = $recipeRepository->findForUser($user);
     }

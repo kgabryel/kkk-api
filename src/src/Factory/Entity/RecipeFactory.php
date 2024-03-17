@@ -5,11 +5,11 @@ namespace App\Factory\Entity;
 use App\Entity\Recipe;
 use App\Model\Recipe as RecipeModel;
 use App\Service\RecipeFillService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class RecipeFactory extends EntityFactory
 {
@@ -17,10 +17,10 @@ class RecipeFactory extends EntityFactory
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        TokenStorageInterface $tokenStorage,
+        UserService $userService,
         RecipeFillService $recipeFillService
     ) {
-        parent::__construct($entityManager, $tokenStorage);
+        parent::__construct($entityManager, $userService);
         $this->recipeFillService = $recipeFillService;
     }
 

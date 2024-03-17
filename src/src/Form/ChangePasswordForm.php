@@ -4,13 +4,13 @@ namespace App\Form;
 
 use App\Config\LengthConfig;
 use App\Model\ChangePassword;
+use App\Service\UserService;
 use App\Validator\CorrectPassword\CorrectPassword;
 use App\Validator\DifferentPassword;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\Length;
@@ -22,9 +22,9 @@ class ChangePasswordForm extends UserForm
 {
     private UserPasswordEncoderInterface $passwordEncoder;
 
-    public function __construct(TokenStorageInterface $tokenStorage, UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(UserService $userService, UserPasswordEncoderInterface $passwordEncoder)
     {
-        parent::__construct($tokenStorage);
+        parent::__construct($userService);
         $this->passwordEncoder = $passwordEncoder;
     }
 
@@ -36,10 +36,7 @@ class ChangePasswordForm extends UserForm
                 new Type([
                     'type' => 'string'
                 ]),
-                new CorrectPassword([
-                    CorrectPassword::USER_OPTION => $this->user,
-                    CorrectPassword::PASSWORD_ENCODER_OPTION => $this->passwordEncoder
-                ])
+                new CorrectPassword($this->user, $this->passwordEncoder)
             ]
         ])
             ->add('newPassword', RepeatedType::class, [
@@ -52,7 +49,7 @@ class ChangePasswordForm extends UserForm
                     new Length([
                         'max' => LengthConfig::PASSWORD
                     ]),
-                    new Callback(function ($value, ExecutionContext $context) {
+                    new Callback(function($value, ExecutionContext $context) {
                         $validator = new DifferentPassword($context);
                         $validator->validate($value);
                     })

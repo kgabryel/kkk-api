@@ -5,6 +5,7 @@ namespace App\Dto;
 use App\Entity\Photo as PhotoEntity;
 use App\Entity\Recipe as Entity;
 use App\Entity\RecipePositionGroup;
+use App\Entity\RecipePositionGroup as RecipePositionGroupEntity;
 use App\Entity\Tag as TagEntity;
 use InvalidArgumentException;
 
@@ -17,19 +18,19 @@ class FullRecipe implements DtoInterface
     private ?int $portions;
     /** @var int[] */
     private array $tags;
-    /** @var RecipePositionsGroup[] */
+    /** @var FullRecipePositionsGroup[] */
     private array $groups;
     private array $photos;
 
     /**
-     * Recipe constructor.
-     *
+     * @param  int  $id
      * @param  string  $name
      * @param  string|null  $description
      * @param  string|null  $url
      * @param  int|null  $portions
      * @param  array  $tags
-     * @param  RecipePositionGroup[]  $groups
+     * @param  RecipePositionGroupEntity[]  $groups
+     * @param  PhotoEntity[]  $photos
      */
     public function __construct(
         int $id,
@@ -63,11 +64,11 @@ class FullRecipe implements DtoInterface
      *
      * @return self
      */
-    public static function createFromEntity($entity): self
+    public static function createFromEntity(mixed $entity): self
     {
         if (!($entity instanceof Entity)) {
             throw new InvalidArgumentException(
-                printf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
+                sprintf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
             );
         }
         $tags = array_map(static fn(TagEntity $tag): string => $tag->getName(), $entity->getTags()->toArray());
@@ -123,7 +124,7 @@ class FullRecipe implements DtoInterface
     }
 
     /**
-     * @return RecipePositionsGroup[]
+     * @return FullRecipePositionsGroup[]
      */
     public function getGroups(): array
     {

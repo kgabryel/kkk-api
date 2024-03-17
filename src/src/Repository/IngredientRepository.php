@@ -13,7 +13,9 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Ingredient[]    findAll()
  * @method Ingredient[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class IngredientRepository extends ServiceEntityRepository implements FindByIdInterface, FindOneByNameWithLowercaseInterface
+class IngredientRepository extends ServiceEntityRepository implements
+    FindByIdInterface,
+    FindOneByNameWithLowercaseInterface
 {
     use FindTrait;
     use FindOneByNameWithLowercaseTrait;

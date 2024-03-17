@@ -37,11 +37,7 @@ class RegisterForm extends AbstractType
                         'max' => LengthConfig::EMAIL
                     ]),
                     new Email(),
-                    new UniqueEmail(
-                        [
-                            UniqueEmail::REPOSITORY_OPTION => $this->repository
-                        ]
-                    )
+                    new UniqueEmail($this->repository)
                 ]
             ]
         )

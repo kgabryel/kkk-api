@@ -29,23 +29,27 @@ class FullRecipePosition implements DtoInterface
      *
      * @return self
      */
-    public static function createFromEntity($entity): self
+    public static function createFromEntity(mixed $entity): self
     {
         if (!($entity instanceof Entity)) {
             throw new InvalidArgumentException(
-                printf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
+                sprintf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
             );
         }
+
+        $name = $entity->getRecipe() === null ? $entity->getIngredient()->getName() : $entity->getRecipe()->getName();
 
         return new self(
             $entity->getAmount(),
             $entity->getMeasure(),
-            $entity->getIngredient() === null
-                ? $entity->getRecipe()?->getName()
-                : $entity->getIngredient()
-                ->getName(),
+            $name,
             $entity->isAdditional()
         );
+    }
+
+    public function getIngredient(): string
+    {
+        return $this->ingredient;
     }
 
     public function getAmount(): ?float
@@ -56,11 +60,6 @@ class FullRecipePosition implements DtoInterface
     public function getMeasure(): string
     {
         return $this->measure;
-    }
-
-    public function getIngredient(): string
-    {
-        return $this->ingredient;
     }
 
     public function isAdditional(): bool

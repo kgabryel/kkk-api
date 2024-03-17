@@ -3,18 +3,18 @@
 namespace App\Service\Entity;
 
 use App\Entity\User;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 abstract class EntityService
 {
     protected EntityManagerInterface $entityManager;
     protected User $user;
 
-    public function __construct(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage)
+    public function __construct(EntityManagerInterface $entityManager, UserService $userService)
     {
         $this->entityManager = $entityManager;
-        $this->user = $tokenStorage->getToken()->getUser();
+        $this->user = $userService->getUser();
     }
 
     abstract public function find(int $id): bool;

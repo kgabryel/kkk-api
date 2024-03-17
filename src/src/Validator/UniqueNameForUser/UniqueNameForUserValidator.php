@@ -7,9 +7,14 @@ use Symfony\Component\Validator\ConstraintValidator;
 
 class UniqueNameForUserValidator extends ConstraintValidator
 {
-    public function validate($value, Constraint $constraint): void
+    /**
+     * @param  mixed  $value
+     * @param  UniqueNameForUser  $constraint
+     *
+     * @return void
+     */
+    public function validate(mixed $value, Constraint $constraint): void
     {
-        /* @var $constraint UniqueNameForUser */
         $repository = $constraint->getRepository();
         $entity = $repository->findOneByNameWithLowercase(
             $constraint->getUser(),
@@ -22,6 +27,6 @@ class UniqueNameForUserValidator extends ConstraintValidator
         if ($entity->getId() === $constraint->getExpect()) {
             return;
         }
-        $this->context->buildViolation($constraint->message)->addViolation();
+        $this->context->buildViolation('')->addViolation();
     }
 }

@@ -5,10 +5,10 @@ namespace App\Service\Entity;
 use App\Entity\Timer;
 use App\Model\Timer as TimerModel;
 use App\Repository\TimerRepository;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class TimerService extends EntityService
 {
@@ -17,10 +17,10 @@ class TimerService extends EntityService
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        TokenStorageInterface $tokenStorage,
+        UserService $userService,
         TimerRepository $timerRepository
     ) {
-        parent::__construct($entityManager, $tokenStorage);
+        parent::__construct($entityManager, $userService);
         $this->timerRepository = $timerRepository;
     }
 

@@ -6,19 +6,19 @@ use App\Entity\Settings;
 use App\Entity\User;
 use App\Model\OzaKey;
 use App\Service\OzaSuppliesService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class SettingsService extends EntityService
 {
     private Settings $settings;
 
-    public function __construct(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage)
+    public function __construct(EntityManagerInterface $entityManager, UserService $userService)
     {
-        parent::__construct($entityManager, $tokenStorage);
+        parent::__construct($entityManager, $userService);
         $this->settings = $this->user->getSettings();
     }
 

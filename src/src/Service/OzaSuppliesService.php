@@ -4,7 +4,6 @@ namespace App\Service;
 
 use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class OzaSuppliesService
@@ -15,11 +14,11 @@ class OzaSuppliesService
     private ?string $ozaKey;
     private array $supplies;
     private int $errorStatus;
-    private TokenStorageInterface $tokenStorage;
+    private UserService $userService;
 
-    public function __construct(TokenStorageInterface $tokenStorage, HttpClientInterface $client)
+    public function __construct(UserService $userService, HttpClientInterface $client)
     {
-        $this->tokenStorage = $tokenStorage;
+        $this->$userService = $userService;
         $this->setKey();
         $this->client = $client;
         $this->ozaUrl = $_ENV['OZA_URL'];
@@ -27,7 +26,7 @@ class OzaSuppliesService
 
     public function setKey(): void
     {
-        $this->ozaKey = $this->tokenStorage->getToken()->getUser()->getSettings()->getOzaKey();
+        $this->ozaKey = $this->userService->getUser()->getSettings()->getOzaKey();
     }
 
     public function downloadSupplies(): bool

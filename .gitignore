@@ -10,6 +10,12 @@
 /src/vendor/
 /src/config/jwt/*.pem
 ###< symfony/framework-bundle ###
+
+###> squizlabs/php_codesniffer ###
+/src/.phpcs-cache
+/src/phpcs.xml
+###< squizlabs/php_codesniffer ###
+
 /.idea
 /docker/pgdata
 /docker/logs

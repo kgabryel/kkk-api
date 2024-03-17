@@ -6,5 +6,5 @@ use App\Entity\User;
 
 interface FindByIdInterface
 {
-    public function findById(int $id, User $user);
+    public function findById(int $id, User $user): mixed;
 }

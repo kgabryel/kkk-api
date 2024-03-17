@@ -14,7 +14,7 @@ trait FindTrait
         );
     }
 
-    public function findById(int $id, User $user)
+    public function findById(int $id, User $user): mixed
     {
         return $this->findOneBy(compact('id', 'user'));
     }

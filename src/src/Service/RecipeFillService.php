@@ -11,7 +11,6 @@ use App\Entity\User;
 use App\Model\Recipe as RecipeModel;
 use App\Repository\TagRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class RecipeFillService
 {
@@ -24,11 +23,11 @@ class RecipeFillService
     public function __construct(
         EntityManagerInterface $entityManager,
         TagRepository $tagRepository,
-        TokenStorageInterface $tokenStorage
+        UserService $userService
     ) {
         $this->entityManager = $entityManager;
         $this->tagRepository = $tagRepository;
-        $this->user = $tokenStorage->getToken()->getUser();
+        $this->user = $userService->getUser();
     }
 
     public function setData(RecipeModel $data): static

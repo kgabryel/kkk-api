@@ -5,10 +5,10 @@ namespace App\Form;
 use App\Entity\Ingredient;
 use App\Model\Season;
 use App\Repository\IngredientRepository;
+use App\Service\UserService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
@@ -18,9 +18,9 @@ class SeasonForm extends UserForm
 {
     private array $ingredients;
 
-    public function __construct(IngredientRepository $ingredientRepository, TokenStorageInterface $tokenStorage)
+    public function __construct(IngredientRepository $ingredientRepository, UserService $userService)
     {
-        parent::__construct($tokenStorage);
+        parent::__construct($userService);
         $this->ingredients = $ingredientRepository->findIngredientsWithoutSeason($this->user);
     }
 

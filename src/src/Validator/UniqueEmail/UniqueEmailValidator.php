@@ -7,10 +7,15 @@ use Symfony\Component\Validator\ConstraintValidator;
 
 class UniqueEmailValidator extends ConstraintValidator
 {
-    public function validate($value, Constraint $constraint): void
+    /**
+     * @param  mixed  $value
+     * @param  UniqueEmail  $constraint
+     *
+     * @return void
+     */
+    public function validate(mixed $value, Constraint $constraint): void
     {
-        /* @var $constraint UniqueEmail */
-        if (null === $value) {
+        if ($value === null) {
             return;
         }
         $user = $constraint->getRepository()

@@ -6,7 +6,7 @@ use App\Entity\User;
 
 trait FindOneByNameWithLowercaseTrait
 {
-    public function findOneByNameWithLowercase(User $user, string $columnName, ?string $value)
+    public function findOneByNameWithLowercase(User $user, string $columnName, ?string $value): mixed
     {
         return $this->createQueryBuilder('e')
             ->select('e')

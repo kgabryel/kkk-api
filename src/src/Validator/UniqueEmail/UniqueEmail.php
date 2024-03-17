@@ -2,28 +2,20 @@
 
 namespace App\Validator\UniqueEmail;
 
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Component\Validator\Constraint;
 
 class UniqueEmail extends Constraint
 {
-    public const REPOSITORY_OPTION = 'repository';
-    private ServiceEntityRepositoryInterface $repository;
+    private ServiceEntityRepository $repository;
 
-    public function __construct(array $options = [])
+    public function __construct(ServiceEntityRepository $repository, array $options = [])
     {
-        $this->repository = $options[self::REPOSITORY_OPTION];
-        parent::__construct(self::clearOptionsArray($options));
+        $this->repository = $repository;
+        parent::__construct($options);
     }
 
-    private static function clearOptionsArray(array $options): array
-    {
-        unset($options[self::REPOSITORY_OPTION]);
-
-        return $options;
-    }
-
-    public function getRepository(): ServiceEntityRepositoryInterface
+    public function getRepository(): ServiceEntityRepository
     {
         return $this->repository;
     }

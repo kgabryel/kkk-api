@@ -1,0 +1,46 @@
+parameters:
+	level: 8
+	checkGenericClassInNonGenericObjectType: false
+	paths:
+		- src
+	ignoreErrors:
+	    - '#type has no value type specified in iterable type array\.$#'
+	    - '#with no value type specified in iterable type array\.$#'
+	    - '# no value type specified in iterable type Symfony\\Component\\Form\\FormInterface\.$#'
+	    -
+	        message: '#^Cannot call method getParent\(\) on object\|null\.$#'
+	        path: 'src/Utils/FormUtils.php'
+	    -
+	        messages:
+	            - '#^Cannot call method getUser\(\) on Symfony\\Component\\Security\\Core\\Authentication\\Token\\TokenInterface\|null\.$#'
+	            - '#^Method App\\Service\\UserService\:\:getUser\(\) should return App\\Entity\\User but returns string\|Stringable\|Symfony\\Component\\Security\\Core\\User\\UserInterface\.$#'
+	        path: 'src/Service/UserService.php'
+	    -
+	        messages:
+	            - '#^Parameter \#1 \$token of method League\\OAuth2\\Client\\Provider\\Facebook\:\:getResourceOwner\(\) expects League\\OAuth2\\Client\\Token\\AccessToken, League\\OAuth2\\Client\\Token\\AccessTokenInterface given\.$#'
+	            - '#^Property App\\Service\\Auth\\FBAuthenticator\:\:\$user \(App\\Entity\\User\) does not accept App\\Entity\\User\|null\.$#'
+	        path: 'src/Service/Auth/FBAuthenticator.php'
+	    -
+	        message: '#::\$id is never written, only read\.$#'
+	        path: 'src/Entity/*'
+	    -
+	        messages:
+	            - '#expects string, string\|null given\.$#'
+	            - '#expects int, int\|null given\.$#'
+	            - '#expects bool, bool\|null given\.$#'
+	        paths:
+	            - 'src/Factory/Entity/*'
+	            - 'src/Dto/*'
+	            - 'src/Service/*'
+	    -
+	        message: '#expects App\\Entity\\Ingredient, App\\Entity\\Ingredient\|null given\.$#'
+	        path: 'src/Factory/Entity/*'
+	    -
+	        message: '#expects string, string\|null given\.$#'
+	        path: 'src/Model/User.php'
+	    -
+	        message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
+	        path: 'src/Service/SerializeService.php'
+	    -
+	        message: '#^Cannot call method getName\(\) on App\\Entity\\Ingredient\|null\.$#'
+	        path: 'src/Dto/FullRecipePosition.php'

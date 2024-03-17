@@ -28,8 +28,6 @@ class Recipe implements DtoInterface
     private array $photos;
 
     /**
-     * Recipe constructor.
-     *
      * @param  int  $id
      * @param  string  $name
      * @param  bool  $favourite
@@ -41,7 +39,8 @@ class Recipe implements DtoInterface
      * @param  RecipePositionGroup[]  $groups
      * @param  bool  $public
      * @param  string  $publicId
-     * @param  Timer[]  $timers
+     * @param  TimerEntity[]  $timers
+     * @param  PhotoEntity[]  $photos
      */
     public function __construct(
         int $id,
@@ -89,11 +88,11 @@ class Recipe implements DtoInterface
      *
      * @return self
      */
-    public static function createFromEntity($entity): self
+    public static function createFromEntity(mixed $entity): self
     {
         if (!($entity instanceof Entity)) {
             throw new InvalidArgumentException(
-                printf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
+                sprintf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
             );
         }
         $tags = array_map(

@@ -82,7 +82,7 @@ class RecipePosition
         return $this->measure;
     }
 
-    public function setMeasure(?string $measure): self
+    public function setMeasure(string $measure): self
     {
         $this->measure = $measure;
 

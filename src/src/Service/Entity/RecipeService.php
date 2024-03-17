@@ -6,10 +6,10 @@ use App\Entity\Recipe;
 use App\Model\Recipe as RecipeModel;
 use App\Repository\RecipeRepository;
 use App\Service\RecipeFillService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class RecipeService extends EntityService
 {
@@ -19,11 +19,11 @@ class RecipeService extends EntityService
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        TokenStorageInterface $tokenStorage,
+        UserService $userService,
         RecipeRepository $recipeRepository,
         RecipeFillService $recipeFillService
     ) {
-        parent::__construct($entityManager, $tokenStorage);
+        parent::__construct($entityManager, $userService);
         $this->recipeRepository = $recipeRepository;
         $this->recipeFillService = $recipeFillService;
     }

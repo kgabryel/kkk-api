@@ -13,8 +13,6 @@ class Season implements DtoInterface
     private int $stop;
 
     /**
-     * Season constructor.
-     *
      * @param  int  $id
      * @param  int  $ingredientId
      * @param  int  $start
@@ -33,11 +31,11 @@ class Season implements DtoInterface
      *
      * @return self
      */
-    public static function createFromEntity($entity): self
+    public static function createFromEntity(mixed $entity): self
     {
         if (!($entity instanceof Entity)) {
             throw new InvalidArgumentException(
-                printf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
+                sprintf('Parameter "entity" isn\'t an instance of "%s" class', Entity::class)
             );
         }
 
