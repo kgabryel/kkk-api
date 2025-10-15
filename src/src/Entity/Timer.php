@@ -3,39 +3,29 @@
 namespace App\Entity;
 
 use App\Repository\TimerRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=TimerRepository::class)
- */
+#[ORM\Entity(repositoryClass: TimerRepository::class)]
 class Timer
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
     private int $id;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private int $time;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $name;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Recipe::class, inversedBy="timers")
-     */
+    #[ORM\ManyToOne(targetEntity: Recipe::class, inversedBy: 'timers')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Recipe $recipe;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="timers")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $time;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'timers')]
+    #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
     public function getId(): int
@@ -43,21 +33,24 @@ class Timer
         return $this->id;
     }
 
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function getRecipe(): ?Recipe
+    {
+        return $this->recipe;
+    }
+
     public function getTime(): int
     {
         return $this->time;
     }
 
-    public function setTime(int $time): self
+    public function getUser(): User
     {
-        $this->time = $time;
-
-        return $this;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
+        return $this->user;
     }
 
     public function setName(?string $name): self
@@ -67,11 +60,6 @@ class Timer
         return $this;
     }
 
-    public function getRecipe(): ?Recipe
-    {
-        return $this->recipe;
-    }
-
     public function setRecipe(?Recipe $recipe): self
     {
         $this->recipe = $recipe;
@@ -79,9 +67,11 @@ class Timer
         return $this;
     }
 
-    public function getUser(): User
+    public function setTime(int $time): self
     {
-        return $this->user;
+        $this->time = $time;
+
+        return $this;
     }
 
     public function setUser(User $user): self

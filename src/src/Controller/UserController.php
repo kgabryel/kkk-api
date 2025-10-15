@@ -2,123 +2,114 @@
 
 namespace App\Controller;
 
-use App\Dto\ApiKey;
-use App\Dto\Settings;
+use App\Entity\ApiKey as ApiKeyEntity;
 use App\Factory\Entity\ApiKeyFactory;
-use App\Form\ChangePasswordForm;
-use App\Form\OzaKeyForm;
-use App\Form\RegisterForm;
 use App\Repository\ApiKeyRepository;
+use App\Response\ApiKeyListResponse;
+use App\Response\ApiKeyResponse;
+use App\Response\SettingsResponse;
 use App\Service\Auth\RegistrationService;
 use App\Service\Entity\ApiKeyService;
 use App\Service\Entity\IngredientService;
 use App\Service\Entity\SettingsService;
 use App\Service\OzaSuppliesService;
-use App\Service\SerializeService;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\ChangePasswordValidation;
+use App\Validation\OzaKeyValidation;
+use App\Validation\RegisterValidation;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class UserController extends BaseController
 {
-    public function register(Request $request, RegistrationService $registration): Response
-    {
-        $form = $this->createForm(RegisterForm::class);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $registration->register($form->getData());
-
-            return new Response(null, Response::HTTP_CREATED);
+    public function changeOzaKey(
+        SettingsService $settingsService,
+        IngredientService $ingredientService,
+        OzaSuppliesService $ozaSuppliesService,
+        OzaKeyValidation $ozaKeyValidation,
+    ): Response {
+        if (!$settingsService->changeOzaKey($ozaKeyValidation, $ingredientService, $ozaSuppliesService)) {
+            return $this->getBadRequestResponse();
         }
 
-        return $this->returnErrors($form);
+        return new SettingsResponse($this->dtoFactoryDispatcher, $settingsService->getSettings(), Response::HTTP_OK);
     }
 
-    public function getKeys(ApiKeyRepository $apiKeyRepository): Response
-    {
-        $serializer = SerializeService::getInstance(ApiKey::class);
+    public function changePassword(
+        SettingsService $settingsService,
+        ChangePasswordValidation $changePasswordValidation,
+    ): Response {
+        if ($this->getUser()->getFbId() !== null) {
+            return $this->getForbiddenResponse();
+        }
 
-        return new Response($serializer->serializeArray($apiKeyRepository->findForUser($this->getUser())));
+        if (!$settingsService->changePassword($changePasswordValidation)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return $this->getNoContentResponse();
+    }
+
+    public function destroyKey(int $id, ApiKeyService $apiKeyService): Response
+    {
+        $apiKey = $apiKeyService->find($id);
+        if (!$apiKey instanceof ApiKeyEntity) {
+            return $this->getNotFoundResponse();
+        }
+
+        $apiKeyService->remove($apiKey);
+
+        return $this->getNoContentResponse();
     }
 
     public function generateKey(ApiKeyFactory $apiKeyFactory): Response
     {
         $apiKey = $apiKeyFactory->generate();
-        if ($apiKey === null) {
-            return new Response(null, Response::HTTP_INTERNAL_SERVER_ERROR);
+        if (!($apiKey instanceof ApiKeyEntity)) {
+            return $this->getInternalServerErrorResponse();
         }
-        $serializer = SerializeService::getInstance(ApiKey::class);
 
-        return new Response($serializer->serialize($apiKey));
+        return new ApiKeyResponse($this->dtoFactoryDispatcher, $apiKey, Response::HTTP_CREATED);
     }
 
-    public function destroyKey(int $id, ApiKeyService $apiKeyService): Response
+    public function getKeys(ApiKeyRepository $apiKeyRepository): Response
     {
-        if (!$apiKeyService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
-        }
-        $apiKeyService->remove();
+        return new ApiKeyListResponse(
+            $this->dtoFactoryDispatcher,
+            ...$apiKeyRepository->findForUser($this->getUser()),
+        );
+    }
 
-        return new Response(null, Response::HTTP_NO_CONTENT);
+    public function getSettings(SettingsService $settingsService): SettingsResponse
+    {
+        return new SettingsResponse($this->dtoFactoryDispatcher, $settingsService->getSettings(), Response::HTTP_OK);
+    }
+
+    public function register(RegisterValidation $registerValidation, RegistrationService $registration): Response
+    {
+        if (!$registerValidation->validate()->passed()) {
+            return $this->getBadRequestResponse();
+        }
+
+        $registration->register($registerValidation->getDto()->getUser());
+
+        return $this->getCreatedResponse();
+    }
+
+    public function switchAutocomplete(SettingsService $settingsService): SettingsResponse
+    {
+        $settingsService->switchAutocomplete();
+
+        return new SettingsResponse($this->dtoFactoryDispatcher, $settingsService->getSettings(), Response::HTTP_OK);
     }
 
     public function switchKey(int $id, ApiKeyService $apiKeyService): Response
     {
-        if (!$apiKeyService->find($id)) {
-            return new Response(null, Response::HTTP_FORBIDDEN);
-        }
-        $apiKeyService->switch();
-        $serializer = SerializeService::getInstance(ApiKey::class);
-
-        return new Response($serializer->serialize($apiKeyService->getKey()));
-    }
-
-    public function switchAutocomplete(SettingsService $settingsService): Response
-    {
-        $settingsService->switchAutocomplete();
-        $serializer = SerializeService::getInstance(Settings::class);
-
-        return new Response($serializer->serialize($settingsService->getSettings()));
-    }
-
-    public function getSettings(SettingsService $settingsService): Response
-    {
-        $serializer = SerializeService::getInstance(Settings::class);
-
-        return new Response($serializer->serialize($settingsService->getSettings()));
-    }
-
-    public function changeOzaKey(
-        Request $request,
-        SettingsService $settingsService,
-        IngredientService $ingredientService,
-        OzaSuppliesService $ozaSuppliesService
-    ): Response {
-        $form = $this->createForm(OzaKeyForm::class, null, [
-            self::METHOD => Request::METHOD_PATCH
-        ]);
-        if (!$settingsService->changeOzaKey($form, $request, $ingredientService, $ozaSuppliesService)) {
-            return $this->returnErrors($form);
-        }
-        $serializer = SerializeService::getInstance(Settings::class);
-
-        return new Response($serializer->serialize($settingsService->getSettings()));
-    }
-
-    public function changePassword(
-        SettingsService $settingsService,
-        Request $request,
-        UserPasswordEncoderInterface $passwordEncoder
-    ): Response {
-        if ($this->getUser()->getFbId() !== null) {
-            return new Response(null, Response::HTTP_FORBIDDEN);
+        $apiKey = $apiKeyService->find($id);
+        if (!$apiKey instanceof ApiKeyEntity) {
+            return $this->getNotFoundResponse();
         }
 
-        $form = $this->createForm(ChangePasswordForm::class);
-        if (!$settingsService->changePassword($form, $request, $passwordEncoder)) {
-            return $this->returnErrors($form);
-        }
+        $apiKeyService->switch($apiKey);
 
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        return new ApiKeyResponse($this->dtoFactoryDispatcher, $apiKey, Response::HTTP_OK);
     }
 }

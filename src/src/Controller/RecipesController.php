@@ -2,93 +2,91 @@
 
 namespace App\Controller;
 
-use App\Dto\FullRecipe;
-use App\Dto\Recipe;
+use App\Entity\Recipe;
 use App\Factory\Entity\RecipeFactory;
-use App\Form\RecipeForm;
 use App\Repository\RecipeRepository;
+use App\Response\FullRecipeResponse;
+use App\Response\RecipeListResponse;
+use App\Response\RecipeResponse;
 use App\Service\Entity\PhotoService;
 use App\Service\Entity\RecipeService;
-use App\Service\SerializeService;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\Recipe\RecipeValidation;
+use App\Validation\RecipeFlagsValidation;
 use Symfony\Component\HttpFoundation\Response;
 
 class RecipesController extends BaseController
 {
-    private SerializeService $serializer;
-
-    public function __construct()
-    {
-        $this->serializer = SerializeService::getInstance(Recipe::class);
-    }
-
-    public function index(RecipeRepository $recipeRepository): Response
-    {
-        return new Response($this->serializer->serializeArray($recipeRepository->findForUser($this->getUser())));
-    }
-
-    public function store(RecipeFactory $recipeFactory, Request $request): Response
-    {
-        $form = $this->createForm(RecipeForm::class);
-        $recipe = $recipeFactory->create($form, $request);
-        if ($recipe === null) {
-            return $this->returnErrors($form);
-        }
-
-        return new Response($this->serializer->serialize($recipe));
-    }
-
-    public function modify(int $id, Request $request, RecipeService $recipeService): Response
-    {
-        if (!$recipeService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
-        }
-        $form = $this->createForm(RecipeForm::class, null, [
-            self::METHOD => Request::METHOD_PATCH
-        ]);
-        if (!$recipeService->modify($form, $request)) {
-            return $this->returnErrors($form);
-        }
-
-        return new Response($this->serializer->serialize($recipeService->getRecipe()), Response::HTTP_OK);
-    }
-
-    public function update(int $id, Request $request, RecipeService $recipeService): Response
-    {
-        if (!$recipeService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
-        }
-        $form = $this->createForm(RecipeForm::class, null, [
-            self::METHOD => Request::METHOD_PUT
-        ]);
-        if (!$recipeService->update($form, $request)) {
-            return $this->returnErrors($form);
-        }
-
-        return new Response($this->serializer->serialize($recipeService->getRecipe()), Response::HTTP_OK);
-    }
-
     public function destroy(int $id, RecipeService $recipeService, PhotoService $photoService): Response
     {
-        if (!$recipeService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
+        $recipe = $recipeService->find($id);
+        if (!($recipe instanceof Recipe)) {
+            return $this->getNotFoundResponse();
         }
-        $recipeService->remove($photoService);
 
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        $recipeService->remove($recipe, $photoService);
+
+        return $this->getNoContentResponse();
+    }
+
+    public function index(RecipeRepository $recipeRepository): RecipeListResponse
+    {
+        return new RecipeListResponse(
+            $this->dtoFactoryDispatcher,
+            ...$recipeRepository->findForUser($this->getUser()),
+        );
+    }
+
+    public function modify(
+        int $id,
+        RecipeFlagsValidation $recipeFlagsValidation,
+        RecipeService $recipeService,
+    ): Response {
+        $recipe = $recipeService->find($id);
+        if (!($recipe instanceof Recipe)) {
+            return $this->getNotFoundResponse();
+        }
+
+        if (!$recipeService->modify($recipe, $recipeFlagsValidation)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return new RecipeResponse($this->dtoFactoryDispatcher, $recipe, Response::HTTP_OK);
     }
 
     public function public(string $id, RecipeRepository $recipeRepository): Response
     {
         $recipe = $recipeRepository->findOneBy([
             'public' => true,
-            'publicId' => $id
+            'publicId' => $id,
         ]);
-        if ($recipe === null) {
-            return new Response(null, Response::HTTP_FORBIDDEN);
+        if (!($recipe instanceof Recipe)) {
+            return $this->getNotFoundResponse();
         }
-        $serializer = SerializeService::getInstance(FullRecipe::class);
 
-        return new Response($serializer->serialize($recipe), Response::HTTP_OK);
+        return new FullRecipeResponse($this->dtoFactoryDispatcher, $recipe);
+    }
+
+    public function store(RecipeFactory $recipeFactory, RecipeValidation $recipeValidation): Response
+    {
+        $recipe = $recipeFactory->create($recipeValidation);
+        if (!($recipe instanceof Recipe)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return new RecipeResponse($this->dtoFactoryDispatcher, $recipe, Response::HTTP_CREATED);
+    }
+
+    public function update(int $id, RecipeValidation $recipeValidation, RecipeService $recipeService): Response
+    {
+        $recipe = $recipeService->find($id);
+        if (!($recipe instanceof Recipe)) {
+            return $this->getNotFoundResponse();
+        }
+
+        if (!$recipeService->update($recipe, $recipeValidation)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return new RecipeResponse($this->dtoFactoryDispatcher, $recipe, Response::HTTP_OK);
     }
 }

@@ -4,7 +4,6 @@ namespace App\Service\Entity;
 
 use App\Config\PhotoType;
 use App\Entity\Photo;
-use App\Entity\Recipe;
 use App\Entity\User;
 use App\Repository\PhotoRepository;
 use App\Service\UserService;
@@ -17,7 +16,6 @@ class PhotoService extends EntityService
 {
     private Filesystem $filesystem;
     private KernelInterface $kernel;
-    private Photo $photo;
     private PhotoRepository $photoRepository;
 
     public function __construct(
@@ -25,7 +23,7 @@ class PhotoService extends EntityService
         UserService $userService,
         PhotoRepository $photoRepository,
         Filesystem $filesystem,
-        KernelInterface $kernel
+        KernelInterface $kernel,
     ) {
         parent::__construct($entityManager, $userService);
         $this->photoRepository = $photoRepository;
@@ -33,49 +31,28 @@ class PhotoService extends EntityService
         $this->kernel = $kernel;
     }
 
-    public static function checkAccess(Photo $photo, ?User $user): bool
+    public function checkAccess(Photo $photo, ?User $user): bool
     {
-        /** @var Recipe $recipe */
         $recipe = $photo->getRecipe();
         if ($recipe->isPublic()) {
             return true;
         }
 
-        /** @var User $photoUser */
         $photoUser = $photo->getUser();
 
         return $photoUser->getId() === $user?->getId();
     }
 
-    public function set(Photo $photo): self
+    public function find(int $id): ?Photo
     {
-        $this->photo = $photo;
-
-        return $this;
+        return $this->photoRepository->findById($id, $this->user);
     }
 
-    public function find(int $id): bool
+    public function remove(Photo $photo): void
     {
-        $photo = $this->photoRepository->findById($id, $this->user);
-
-        if ($photo === null) {
-            return false;
-        }
-        $this->photo = $photo;
-
-        return true;
-    }
-
-    public function getPhoto(): Photo
-    {
-        return $this->photo;
-    }
-
-    public function remove(): void
-    {
-        $fileName = $this->photo->getFileName();
-        $this->removeEntity($this->photo);
-        foreach (array_column(PhotoType::cases(), 'value') as $type) {
+        $fileName = $photo->getFileName();
+        $this->removeEntity($photo);
+        foreach (PhotoType::cases() as $type) {
             $this->filesystem->remove(PhotoUtils::getPath($this->kernel->getProjectDir(), $type, $fileName));
         }
     }

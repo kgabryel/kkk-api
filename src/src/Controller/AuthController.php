@@ -2,38 +2,41 @@
 
 namespace App\Controller;
 
-use App\Form\FbLoginForm;
 use App\Service\Auth\FBAuthenticator;
 use App\Service\Auth\TokensService;
+use App\Validation\FbLoginValidation;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends BaseController
 {
-    public const URL = 'url';
-    public const AUTH_TOKEN = 'authToken';
+    public const string URL = 'url';
 
     public function getRedirectUrl(FBAuthenticator $authenticator): Response
     {
         return new JsonResponse([
-            self::URL => $authenticator->getRedirectUrl()
+            self::URL => $authenticator->getRedirectUrl(),
         ]);
     }
 
-    public function login(Request $request, FBAuthenticator $authenticator, TokensService $tokensService): Response
-    {
-        $form = $this->createForm(FbLoginForm::class);
-        $form->handleRequest($request);
-        if (!($form->isSubmitted() && $form->isValid())) {
-            return new Response(null, Response::HTTP_UNAUTHORIZED);
+    public function login(
+        FBAuthenticator $authenticator,
+        TokensService $tokensService,
+        FbLoginValidation $fbLoginValidation,
+    ): Response {
+        if (!$fbLoginValidation->validate()->passed()) {
+            return $this->getUnauthorizedResponse();
         }
-        $authToken = $form->getData()[self::AUTH_TOKEN];
-        if (!$authenticator->getUserInfo($authToken)) {
-            return new Response(null, Response::HTTP_UNAUTHORIZED);
-        }
-        $authenticator->userExists() ? $authenticator->setUser() : $authenticator->createUser();
 
-        return new JsonResponse($tokensService->getTokens($authenticator->getUser()));
+        $userInfo = $authenticator->getUserInfo($fbLoginValidation->getDto()->getToken());
+        if ($userInfo === false) {
+            return $this->getUnauthorizedResponse();
+        }
+
+        if (!$authenticator->userExists($userInfo[FBAuthenticator::ID])) {
+            $authenticator->createUser($userInfo);
+        }
+
+        return new JsonResponse($tokensService->getTokens($authenticator->getUser($userInfo[FBAuthenticator::ID])));
     }
 }

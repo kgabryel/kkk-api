@@ -2,115 +2,109 @@
 
 namespace App\Service\Entity;
 
+use App\Dto\Request\Order;
 use App\Entity\Recipe;
-use App\Model\Recipe as RecipeModel;
 use App\Repository\RecipeRepository;
 use App\Service\RecipeFillService;
 use App\Service\UserService;
+use App\Validation\Recipe\RecipeValidation;
+use App\Validation\RecipeFlagsValidation;
+use App\Validation\ReorderPhotosValidation;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 class RecipeService extends EntityService
 {
-    private Recipe $recipe;
-    private RecipeRepository $recipeRepository;
     private RecipeFillService $recipeFillService;
+    private RecipeRepository $recipeRepository;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         UserService $userService,
         RecipeRepository $recipeRepository,
-        RecipeFillService $recipeFillService
+        RecipeFillService $recipeFillService,
     ) {
         parent::__construct($entityManager, $userService);
         $this->recipeRepository = $recipeRepository;
         $this->recipeFillService = $recipeFillService;
     }
 
-    public function find(int $id): bool
+    public function find(int $id): ?Recipe
     {
-        $recipe = $this->recipeRepository->findById($id, $this->user);
-        if ($recipe === null) {
-            return false;
-        }
-        $this->recipe = $recipe;
-
-        return true;
+        return $this->recipeRepository->findById($id, $this->user);
     }
 
-    public function getRecipe(): Recipe
+    public function modify(Recipe $recipe, RecipeFlagsValidation $recipeFlagsValidation): bool
     {
-        return $this->recipe;
-    }
-
-    public function modify(FormInterface $form, Request $request): bool
-    {
-        $form->handleRequest($request);
-        if (!$form->isSubmitted() || !$form->isValid()) {
+        if (!$recipeFlagsValidation->validate()->passed()) {
             return false;
         }
-        /** @var RecipeModel $data */
-        $data = $form->getData();
-        $favourite = $data->isFavourite();
-        $toDo = $data->isToDo();
+
+        $data = $recipeFlagsValidation->getDto();
+        $favourite = $data->getFavourite();
+        $toDo = $data->getToDo();
+
         if ($favourite !== null) {
-            $this->recipe->setFavourite($favourite);
+            $recipe->setFavourite($favourite);
         }
         if ($toDo !== null) {
-            $this->recipe->setToDo($toDo);
+            $recipe->setToDo($toDo);
         }
-        $this->saveEntity($this->recipe);
+
+        $this->saveEntity($recipe);
 
         return true;
     }
 
-    public function update(FormInterface $form, Request $request): bool
+    public function remove(Recipe $recipe, PhotoService $photoService): void
     {
-        $form->handleRequest($request);
-        if (!$form->isSubmitted() || !$form->isValid()) {
+        foreach ($recipe->getPhotos() as $photo) {
+            $photoService->remove($photo);
+        }
+        $this->removeEntity($recipe);
+    }
+
+    public function reorderPhotos(Recipe $recipe, ReorderPhotosValidation $reorderPhotosValidation): bool
+    {
+        if (!$reorderPhotosValidation->validate($recipe)->passed()) {
             return false;
         }
-        /** @var RecipeModel $data */
-        $data = $form->getData();
-        $this->recipeFillService->setRecipe($this->recipe)->setData($data)->fillRecipeBasicData();
-        $this->recipe->clearTags();
-        $this->saveEntity($this->recipe);
-        $this->recipeFillService->assignTags();
-        foreach ($this->recipe->getRecipePositionGroups() as $group) {
+
+        $order = $reorderPhotosValidation->getDto();
+        $photosOrder = [];
+
+        /** @var Order $item */
+        foreach ($order->get() as $item) {
+            $photosOrder[$item->getId()] = $item->getIndex();
+        }
+        foreach ($recipe->getPhotos() as $photo) {
+            $photo->setPhotoOrder($photosOrder[$photo->getId()]);
+            $this->saveEntity($photo);
+        }
+
+        return true;
+    }
+
+    public function update(Recipe $recipe, RecipeValidation $recipeValidation): bool
+    {
+        if (!$recipeValidation->validate()->passed()) {
+            return false;
+        }
+
+        $data = $recipeValidation->getDto();
+        $this->recipeFillService->fillRecipeBasicData($recipe, $data);
+        $recipe->clearTags();
+        $this->saveEntity($recipe);
+        $this->recipeFillService->assignTags($recipe, $data);
+        foreach ($recipe->getRecipePositionGroups() as $group) {
             $this->removeEntity($group);
         }
-        foreach ($this->recipe->getTimers() as $timer) {
+        foreach ($recipe->getTimers() as $timer) {
             $this->removeEntity($timer);
         }
-        $this->recipeFillService->assignPositions();
-        $this->recipeFillService->assignTimers();
+        $this->recipeFillService->assignPositions($recipe, $data);
+        $this->recipeFillService->assignTimers($recipe, $data);
         $this->entityManager->flush();
 
         return true;
-    }
-
-    public function remove(PhotoService $photoService): void
-    {
-        foreach ($this->recipe->getPhotos() as $recipe) {
-            $photoService->set($recipe)->remove();
-        }
-        $this->removeEntity($this->recipe);
-    }
-
-    public function reorderPhotos(Request $request): void
-    {
-        $order = $request->get('order') ?? [];
-        if (!is_array($order)) {
-            return;
-        }
-        $photosOrder = [];
-        foreach ($order as $item) {
-            $photosOrder[(int)($item['id'] ?? 0)] = (int)($item['index'] ?? 1);
-        }
-        foreach ($this->recipe->getPhotos() as $photo) {
-            $photo->setPhotoOrder($photosOrder[$photo->getId()] ?? 1);
-            $this->saveEntity($photo);
-        }
     }
 }

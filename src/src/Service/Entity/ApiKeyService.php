@@ -9,42 +9,30 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class ApiKeyService extends EntityService
 {
-    private ApiKey $apiKey;
     private ApiKeyRepository $apiKeyRepository;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         UserService $userService,
-        ApiKeyRepository $apiKeyRepository
+        ApiKeyRepository $apiKeyRepository,
     ) {
         parent::__construct($entityManager, $userService);
         $this->apiKeyRepository = $apiKeyRepository;
     }
 
-    public function find(int $id): bool
+    public function find(int $id): ?ApiKey
     {
-        $apiKey = $this->apiKeyRepository->findById($id, $this->user);
-        if ($apiKey === null) {
-            return false;
-        }
-        $this->apiKey = $apiKey;
-
-        return true;
+        return $this->apiKeyRepository->findById($id, $this->user);
     }
 
-    public function switch(): void
+    public function remove(ApiKey $apiKey): void
     {
-        $this->apiKey->isActive() ? $this->apiKey->deactivate() : $this->apiKey->activate();
-        $this->saveEntity($this->apiKey);
+        $this->removeEntity($apiKey);
     }
 
-    public function remove(): void
+    public function switch(ApiKey $apiKey): void
     {
-        $this->removeEntity($this->apiKey);
-    }
-
-    public function getKey(): ApiKey
-    {
-        return $this->apiKey;
+        $apiKey->isActive() ? $apiKey->deactivate() : $apiKey->activate();
+        $this->saveEntity($apiKey);
     }
 }

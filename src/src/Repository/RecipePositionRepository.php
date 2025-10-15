@@ -9,8 +9,10 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @method RecipePosition|null find($id, $lockMode = null, $lockVersion = null)
  * @method RecipePosition|null findOneBy(array $criteria, array $orderBy = null)
- * @method RecipePosition[]    findAll()
- * @method RecipePosition[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method RecipePosition[] findAll()
+ * @method RecipePosition[] findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends ServiceEntityRepository<RecipePosition>
  */
 class RecipePositionRepository extends ServiceEntityRepository
 {

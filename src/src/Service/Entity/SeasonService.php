@@ -3,60 +3,44 @@
 namespace App\Service\Entity;
 
 use App\Entity\Season;
-use App\Model\UpdateSeason;
 use App\Repository\SeasonRepository;
 use App\Service\UserService;
+use App\Validation\EditSeasonValidation;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 class SeasonService extends EntityService
 {
-    private Season $season;
     private SeasonRepository $seasonRepository;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         UserService $userService,
-        SeasonRepository $seasonRepository
+        SeasonRepository $seasonRepository,
     ) {
         parent::__construct($entityManager, $userService);
         $this->seasonRepository = $seasonRepository;
     }
 
-    public function find(int $id): bool
+    public function find(int $id): ?Season
     {
-        $season = $this->seasonRepository->findById($id, $this->user);
-        if ($season === null) {
+        return $this->seasonRepository->findById($id, $this->user);
+    }
+
+    public function remove(Season $season): void
+    {
+        $this->removeEntity($season);
+    }
+
+    public function update(Season $season, EditSeasonValidation $editSeasonValidation): bool
+    {
+        if (!$editSeasonValidation->validate()->passed()) {
             return false;
         }
-        $this->season = $season;
+        $data = $editSeasonValidation->getDto();
+        $season->setStart($data->getStart());
+        $season->setStop($data->getStop());
+        $this->saveEntity($season);
 
         return true;
-    }
-
-    public function getSeason(): Season
-    {
-        return $this->season;
-    }
-
-    public function update(FormInterface $form, Request $request): bool
-    {
-        $form->handleRequest($request);
-        if (!$form->isSubmitted() || !$form->isValid()) {
-            return false;
-        }
-        /** @var UpdateSeason $data */
-        $data = $form->getData();
-        $this->season->setStart($data->getStart());
-        $this->season->setStop($data->getStop());
-        $this->saveEntity($this->season);
-
-        return true;
-    }
-
-    public function remove(): void
-    {
-        $this->removeEntity($this->season);
     }
 }

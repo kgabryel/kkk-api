@@ -16,12 +16,13 @@ class ApiKeyFactory extends EntityFactory
         $saved = false;
         $failCount = 0;
         while (!$saved && $failCount < 10) {
-            $apiKey->setKey(ByteString::fromRandom(128)->toString());
+            $apiKey->setKey(ByteString::fromRandom(ApiKey::KEY_LENGTH)->toString());
+
             try {
                 $this->saveEntity($apiKey);
                 $saved = true;
             } catch (UniqueConstraintViolationException) {
-                $failCount++;
+                ++$failCount;
             }
         }
 

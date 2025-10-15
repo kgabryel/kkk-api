@@ -3,39 +3,30 @@
 namespace App\Entity;
 
 use App\Repository\SettingsRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=SettingsRepository::class)
- */
+#[ORM\Entity(repositoryClass: SettingsRepository::class)]
 class Settings
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private int $id;
-
-    /**
-     * @ORM\Column(type="string", length=128, nullable=true)
-     */
-    private ?string $ozaKey;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: Types::BOOLEAN)]
     private bool $autocomplete;
 
-    /**
-     * @ORM\OneToOne(targetEntity=User::class, inversedBy="settings", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $id;
+
+    #[ORM\Column(type: Types::STRING, length: 128, nullable: true)]
+    private ?string $ozaKey;
+
+    #[ORM\OneToOne(targetEntity: User::class, inversedBy: 'settings')]
+    #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
-    public function getId(): int
+    public function getAutocomplete(): bool
     {
-        return $this->id;
+        return $this->autocomplete;
     }
 
     public function getOzaKey(): ?string
@@ -43,16 +34,9 @@ class Settings
         return $this->ozaKey;
     }
 
-    public function setOzaKey(?string $ozaKey): self
+    public function getUser(): User
     {
-        $this->ozaKey = $ozaKey;
-
-        return $this;
-    }
-
-    public function getAutocomplete(): bool
-    {
-        return $this->autocomplete;
+        return $this->user;
     }
 
     public function setAutocomplete(bool $autocomplete): self
@@ -62,9 +46,11 @@ class Settings
         return $this;
     }
 
-    public function getUser(): User
+    public function setOzaKey(?string $ozaKey): self
     {
-        return $this->user;
+        $this->ozaKey = $ozaKey;
+
+        return $this;
     }
 
     public function setUser(User $user): self

@@ -3,20 +3,17 @@
 namespace App\Factory\Entity;
 
 use App\Entity\Tag;
-use App\Model\Tag as TagModel;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\TagValidation;
 
 class TagFactory extends EntityFactory
 {
-    public function create(FormInterface $form, Request $request): ?Tag
+    public function create(TagValidation $tagValidation): ?Tag
     {
-        $form->handleRequest($request);
-        if (!$form->isSubmitted() || !$form->isValid()) {
+        if (!$tagValidation->validate()->passed()) {
             return null;
         }
-        /** @var TagModel $data */
-        $data = $form->getData();
+
+        $data = $tagValidation->getDto();
         $tag = new Tag();
         $tag->setUser($this->user);
         $tag->setName($data->getName());

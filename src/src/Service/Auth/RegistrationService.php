@@ -2,26 +2,32 @@
 
 namespace App\Service\Auth;
 
-use App\Model\User;
-use App\Service\Entity\SettingsService;
+use App\Entity\Settings;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class RegistrationService
 {
     private EntityManagerInterface $manager;
-    private UserPasswordEncoderInterface $passwordEncoder;
 
-    public function __construct(EntityManagerInterface $manager, UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(EntityManagerInterface $manager)
     {
         $this->manager = $manager;
-        $this->passwordEncoder = $passwordEncoder;
     }
 
-    public function register(User $model): void
+    public function getSettings(User $user): Settings
     {
-        $user = $model->getUser($this->passwordEncoder);
-        $settings = SettingsService::get($user);
+        $settings = new Settings();
+        $settings->setAutocomplete(true);
+        $settings->setOzaKey(null);
+        $settings->setUser($user);
+
+        return $settings;
+    }
+
+    public function register(User $user): void
+    {
+        $settings = $this->getSettings($user);
         $this->manager->persist($settings);
         $this->manager->persist($user);
         $this->manager->flush();

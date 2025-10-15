@@ -2,75 +2,75 @@
 
 namespace App\Controller;
 
-use App\Dto\Ingredient;
-use App\Dto\OzaSupply;
+use App\Entity\Ingredient;
 use App\Factory\Entity\IngredientFactory;
-use App\Form\IngredientForm;
 use App\Repository\IngredientRepository;
+use App\Response\IngredientListResponse;
+use App\Response\IngredientResponse;
+use App\Response\OzaSupplyListResponse;
 use App\Service\Entity\IngredientService;
 use App\Service\OzaSuppliesService;
-use App\Service\SerializeService;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\CreateIngredientValidation;
+use App\Validation\EditIngredientValidation;
 use Symfony\Component\HttpFoundation\Response;
 
 class IngredientsController extends BaseController
 {
-    private SerializeService $serializer;
-
-    public function __construct()
-    {
-        $this->serializer = SerializeService::getInstance(Ingredient::class);
-    }
-
-    public function index(IngredientRepository $ingredientRepository): Response
-    {
-        return new Response($this->serializer->serializeArray($ingredientRepository->findForUser($this->getUser())));
-    }
-
-    public function store(IngredientFactory $ingredientFactory, Request $request): Response
-    {
-        $form = $this->createForm(IngredientForm::class);
-        $ingredient = $ingredientFactory->create($form, $request);
-        if ($ingredient === null) {
-            return $this->returnErrors($form);
-        }
-
-        return new Response($this->serializer->serialize($ingredient));
-    }
-
-    public function modify(int $id, Request $request, IngredientService $ingredientService): Response
-    {
-        if (!$ingredientService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
-        }
-        $form = $this->createForm(IngredientForm::class, null, [
-            self::EXPECT => $id,
-            self::METHOD => Request::METHOD_PATCH
-        ]);
-        if (!$ingredientService->update($form, $request)) {
-            return $this->returnErrors($form);
-        }
-
-        return new Response($this->serializer->serialize($ingredientService->getIngredient()), Response::HTTP_OK);
-    }
-
     public function destroy(int $id, IngredientService $ingredientService): Response
     {
-        if (!$ingredientService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
+        $ingredient = $ingredientService->find($id);
+        if (!$ingredient instanceof Ingredient) {
+            return $this->getNotFoundResponse();
         }
-        $ingredientService->remove();
 
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        $ingredientService->remove($ingredient);
+
+        return $this->getNoContentResponse();
     }
 
-    public function geOzaSupplies(OzaSuppliesService $ozaSuppliesService): Response
+    public function getOzaSupplies(OzaSuppliesService $ozaSuppliesService): Response
     {
         if (!$ozaSuppliesService->downloadSupplies()) {
-            return new Response(null, $ozaSuppliesService->getErrorStatusCode());
+            return new Response(status: $ozaSuppliesService->getErrorStatusCode());
         }
-        $serializer = SerializeService::getInstance(OzaSupply::class);
 
-        return new Response($serializer->serializeArray($ozaSuppliesService->getSupplies()));
+        return new OzaSupplyListResponse($this->dtoFactoryDispatcher, ...$ozaSuppliesService->getSupplies());
+    }
+
+    public function index(IngredientRepository $ingredientRepository): IngredientListResponse
+    {
+        return new IngredientListResponse(
+            $this->dtoFactoryDispatcher,
+            ...$ingredientRepository->findForUser($this->getUser()),
+        );
+    }
+
+    public function modify(
+        int $id,
+        EditIngredientValidation $ingredientValidation,
+        IngredientService $ingredientService,
+    ): Response {
+        $ingredient = $ingredientService->find($id);
+        if (!$ingredient instanceof Ingredient) {
+            return $this->getNotFoundResponse();
+        }
+
+        if (!$ingredientService->update($ingredient, $ingredientValidation)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return new IngredientResponse($this->dtoFactoryDispatcher, $ingredient, Response::HTTP_OK);
+    }
+
+    public function store(
+        IngredientFactory $ingredientFactory,
+        CreateIngredientValidation $ingredientValidation,
+    ): Response {
+        $ingredient = $ingredientFactory->create($ingredientValidation);
+        if (!($ingredient instanceof Ingredient)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return new IngredientResponse($this->dtoFactoryDispatcher, $ingredient, Response::HTTP_CREATED);
     }
 }

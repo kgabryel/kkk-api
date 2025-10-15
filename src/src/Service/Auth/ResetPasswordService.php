@@ -4,82 +4,74 @@ namespace App\Service\Auth;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Utils\PathUtils;
+use App\Service\PathService;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 
 class ResetPasswordService
 {
-    private FormInterface $form;
-    private ResetPasswordHelperInterface $resetPasswordHelper;
     private MailerInterface $mailer;
+    private PathService $pathService;
+    private ResetPasswordHelperInterface $resetPasswordHelper;
     private UserRepository $userRepository;
 
     public function __construct(
         ResetPasswordHelperInterface $resetPasswordHelper,
         MailerInterface $mailer,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        PathService $pathService,
     ) {
         $this->resetPasswordHelper = $resetPasswordHelper;
         $this->mailer = $mailer;
         $this->userRepository = $userRepository;
+        $this->pathService = $pathService;
     }
 
-    public function setForm(FormInterface $form): self
+    public function changePassword(string $token, EntityManagerInterface $entityManager, string $newPassword): void
     {
-        $this->form = $form;
-
-        return $this;
+        /** @var User $user */
+        $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
+        $this->resetPasswordHelper->removeResetRequest($token);
+        $user->setPassword($newPassword);
+        $entityManager->persist($user);
+        $entityManager->flush();
     }
 
-    public function checkForm(Request $request): bool
+    public function sendResetEmail(ParameterBagInterface $parameterBag, string $userEmail): void
     {
-        $this->form->handleRequest($request);
+        if (!$parameterBag->has('EMAIL_ADDRESS')) {
+            throw new RuntimeException('EMAIL_ADDRESS parameter is not set.');
+        }
 
-        return $this->form->isSubmitted() && $this->form->isValid();
-    }
+        $emailAddress = $parameterBag->get('EMAIL_ADDRESS');
+        if (empty($emailAddress) || !is_string($emailAddress) || !filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) {
+            throw new RuntimeException('EMAIL_ADDRESS parameter is empty or invalid.');
+        }
 
-    public function sendResetEmail(): void
-    {
-        $email = $this->form->getData()->getEmail();
         $user = $this->userRepository->findOneBy([
-            'email' => $email,
-            'fbId' => null
+            'email' => $userEmail,
+            'fbId' => null,
         ]);
         if ($user === null) {
             return;
         }
+
         $resetToken = $this->resetPasswordHelper->generateResetToken($user);
-        $email = (new TemplatedEmail())
-            ->from(Address::create('KKK powiadomienia <drink.notifications@gmail.com>'))
+
+        $email = new TemplatedEmail()
+            ->from(Address::create(sprintf('KKK powiadomienia <%s>', $emailAddress)))
             ->to($user->getEmail())
             ->subject('KKK - reset hasła')
             ->htmlTemplate('resetPassword.html.twig')
             ->context([
-                'url' => PathUtils::getPathToFront(sprintf('change-password/%s', $resetToken->getToken())),
-                'banner' => PathUtils::getPathToFront('assets/logo.png')
+                'banner' => $this->pathService->getPathToFront('assets/logo.png'),
+                'url' => $this->pathService->getPathToFront(sprintf('change-password/%s', $resetToken->getToken())),
             ]);
-
         $this->mailer->send($email);
-    }
-
-    public function changePassword(
-        string $token,
-        UserPasswordEncoderInterface $passwordEncoder,
-        EntityManagerInterface $entityManager
-    ): void {
-        /** @var User $user */
-        $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
-        $this->resetPasswordHelper->removeResetRequest($token);
-        $encodedPassword = $passwordEncoder->encodePassword($user, $this->form->getData()->getNewPassword());
-
-        $user->setPassword($encodedPassword);
-        $entityManager->flush();
     }
 }

@@ -3,89 +3,78 @@
 namespace App\Entity;
 
 use App\Repository\PhotoRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=PhotoRepository::class)
- */
+#[ORM\Entity(repositoryClass: PhotoRepository::class)]
 class Photo
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private int $id;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private int $height;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private int $width;
-
-    /**
-     * @ORM\Column(type="string", length=36)
-     */
+    #[ORM\Column(type: Types::STRING, length: 36)]
     private string $fileName;
 
-    /**
-     * @ORM\Column(type="string", length=100)
-     */
-    private string $type;
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $height;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="photos")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private User $user;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Recipe::class, inversedBy="photos")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private Recipe $recipe;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $photoOrder;
 
-    public function getId(): ?int
+    #[ORM\ManyToOne(targetEntity: Recipe::class, inversedBy: 'photos')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private Recipe $recipe;
+
+    #[ORM\Column(type: Types::STRING, length: 100)]
+    private string $type;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private User $user;
+
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $width;
+
+    public function getFileName(): string
     {
-        return $this->id;
+        return $this->fileName;
     }
 
-    public function getHeight(): ?int
+    public function getHeight(): int
     {
         return $this->height;
     }
 
-    public function setHeight(int $height): self
+    public function getId(): int
     {
-        $this->height = $height;
-
-        return $this;
+        return $this->id;
     }
 
-    public function getWidth(): ?int
+    public function getPhotoOrder(): ?int
+    {
+        return $this->photoOrder;
+    }
+
+    public function getRecipe(): Recipe
+    {
+        return $this->recipe;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function getWidth(): int
     {
         return $this->width;
-    }
-
-    public function setWidth(int $width): self
-    {
-        $this->width = $width;
-
-        return $this;
-    }
-
-    public function getFileName(): ?string
-    {
-        return $this->fileName;
     }
 
     public function setFileName(string $fileName): self
@@ -95,33 +84,18 @@ class Photo
         return $this;
     }
 
-    public function getType(): ?string
+    public function setHeight(int $height): self
     {
-        return $this->type;
-    }
-
-    public function setType(string $type): self
-    {
-        $this->type = $type;
+        $this->height = $height;
 
         return $this;
     }
 
-    public function getUser(): ?User
+    public function setPhotoOrder(?int $photoOrder): self
     {
-        return $this->user;
-    }
-
-    public function setUser(User $user): self
-    {
-        $this->user = $user;
+        $this->photoOrder = $photoOrder;
 
         return $this;
-    }
-
-    public function getRecipe(): ?Recipe
-    {
-        return $this->recipe;
     }
 
     public function setRecipe(Recipe $recipe): self
@@ -131,14 +105,23 @@ class Photo
         return $this;
     }
 
-    public function getPhotoOrder(): ?int
+    public function setType(string $type): self
     {
-        return $this->photoOrder;
+        $this->type = $type;
+
+        return $this;
     }
 
-    public function setPhotoOrder(?int $photoOrder): self
+    public function setUser(User $user): self
     {
-        $this->photoOrder = $photoOrder;
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function setWidth(int $width): self
+    {
+        $this->width = $width;
 
         return $this;
     }

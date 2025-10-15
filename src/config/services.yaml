@@ -4,7 +4,12 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
-
+  OZA_URL: '%env(OZA_URL)%'
+  FB_ID: '%env(FB_ID)%'
+  FB_SECRET: '%env(FB_SECRET)%'
+  FB_REDIRECT: '%env(FB_REDIRECT)%'
+  EMAIL_ADDRESS: '%env(EMAIL_ADDRESS)%'
+  FRONT_URL: '%env(FRONT_URL)%'
 services:
   # default configuration for services in *this* file
   _defaults:
@@ -19,15 +24,39 @@ services:
       - '../src/DependencyInjection/'
       - '../src/Entity/'
       - '../src/Kernel.php'
-      - '../src/Tests/'
-
-  # controllers are imported separately to make sure services can be injected
-  # as action arguments even if you don't extend any base controller class
-  App\Controller\:
-    resource: '../src/Controller/'
-    tags: [ 'controller.service_arguments' ]
 
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones
   App\Service\Auth\FBAuthenticator:
     factory: [ '@App\Factory\FBAuthenticatorFactory', 'create' ]
+  App\Factory\Dto\ApiKeyFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\FullRecipeFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\FullRecipePositionFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\FullRecipePositionsGroupFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\IngredientFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\OzaSupplyFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\PhotoFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\RecipeFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\RecipePositionFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\RecipePositionsGroupFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\SeasonFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\SettingsFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\Dto\TagFactory:
+    tags: ['app.dto_factory']
+  App\Factory\Dto\TimerFactory:
+    tags: [ 'app.dto_factory' ]
+  App\Factory\DtoFactoryDispatcher:
+    arguments:
+      $factories: !tagged_iterator app.dto_factory

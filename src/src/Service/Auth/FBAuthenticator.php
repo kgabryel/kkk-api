@@ -4,7 +4,6 @@ namespace App\Service\Auth;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Service\Entity\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use League\OAuth2\Client\Provider\Facebook;
@@ -12,77 +11,65 @@ use Symfony\Component\String\ByteString;
 
 class FBAuthenticator
 {
-    public const AUTHORIZATION_CODE = 'authorization_code';
-    public const CODE = 'code';
-    public const FB_ID = 'fbId';
-    public const ID = 'id';
-    public const EMAIL_SUFFIX = '@fb.com';
+    public const string AUTHORIZATION_CODE = 'authorization_code';
+    public const string CODE = 'code';
+    public const string EMAIL_SUFFIX = '@fb.com';
+    public const string FB_ID = 'fbId';
+    public const string ID = 'id';
     private Facebook $facebook;
-    private array $userInfo;
-    private User $user;
-    private UserRepository $userRepository;
     private EntityManagerInterface $manager;
+    private RegistrationService $registrationService;
+    private UserRepository $userRepository;
 
-    public function __construct(Facebook $facebook, UserRepository $userRepository, EntityManagerInterface $manager)
-    {
-        $this->userInfo = [];
+    public function __construct(
+        Facebook $facebook,
+        UserRepository $userRepository,
+        EntityManagerInterface $manager,
+        RegistrationService $registrationService,
+    ) {
         $this->facebook = $facebook;
         $this->userRepository = $userRepository;
         $this->manager = $manager;
+        $this->registrationService = $registrationService;
     }
 
-    public function getUserInfo(string $authToken): bool
+    public function createUser(array $userInfo): User
     {
-        try {
-            $accessToken = $this->facebook->getAccessToken(
-                self::AUTHORIZATION_CODE,
-                [self::CODE => $authToken]
-            );
-            $this->userInfo = $this->facebook->getResourceOwner($accessToken)->toArray();
-        } catch (Exception) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function userExists(): bool
-    {
-        return $this->userRepository->findOneBy([
-                self::FB_ID => $this->userInfo[self::ID]
-            ]) !== null;
-    }
-
-    public function createUser(): self
-    {
-        $this->user = new User();
-        $this->user->setEmail(sprintf('%s%s', $this->userInfo[self::ID], self::EMAIL_SUFFIX));
-        $this->user->setFbId($this->userInfo[self::ID]);
-        $this->user->setPassword(ByteString::fromRandom(30)->toString());
-        $settings = SettingsService::get($this->user);
+        $user = new User();
+        $user->setEmail(sprintf('%s%s', $userInfo[self::ID], self::EMAIL_SUFFIX));
+        $user->setFbId($userInfo[self::ID]);
+        $user->setPassword(ByteString::fromRandom(30)->toString());
+        $settings = $this->registrationService->getSettings($user);
         $this->manager->persist($settings);
-        $this->manager->persist($this->user);
+        $this->manager->persist($user);
         $this->manager->flush();
 
-        return $this;
-    }
-
-    public function getUser(): User
-    {
-        return $this->user;
-    }
-
-    public function setUser(): self
-    {
-        $this->user = $this->userRepository->findOneBy([
-            self::FB_ID => $this->userInfo[self::ID]
-        ]);
-
-        return $this;
+        return $user;
     }
 
     public function getRedirectUrl(): string
     {
         return $this->facebook->getAuthorizationUrl();
+    }
+
+    public function getUser(string $facebookId): User
+    {
+        return $this->userRepository->findOneBy([self::FB_ID => $facebookId]);
+    }
+
+    public function getUserInfo(string $authToken): false|array
+    {
+        try {
+            $accessToken = $this->facebook->getAccessToken(self::AUTHORIZATION_CODE, [self::CODE => $authToken]);
+
+            return $this->facebook->getResourceOwner($accessToken)->toArray();
+        } catch (Exception) {
+            return false;
+        }
+    }
+
+    public function userExists(string $facebookId): bool
+    {
+        return $this->userRepository->findOneBy([self::FB_ID => $facebookId]) !== null;
     }
 }

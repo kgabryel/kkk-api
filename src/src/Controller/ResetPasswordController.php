@@ -2,14 +2,13 @@
 
 namespace App\Controller;
 
-use App\Form\ResetPasswordForm;
-use App\Form\ResetPasswordRequestForm;
 use App\Service\Auth\ResetPasswordService;
+use App\Validation\ResetPasswordRequestValidation;
+use App\Validation\ResetPasswordValidation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 
@@ -22,50 +21,53 @@ class ResetPasswordController extends AbstractController
         $this->resetPasswordHelper = $resetPasswordHelper;
     }
 
-    public function sendEmail(ResetPasswordService $resetPasswordService, Request $request): Response
-    {
-        $form = $this->createForm(ResetPasswordRequestForm::class);
-        $resetPasswordService->setForm($form);
-        if ($resetPasswordService->checkForm($request)) {
-            $resetPasswordService->sendResetEmail();
-
-            return new Response(null, Response::HTTP_NO_CONTENT);
+    public function changePassword(
+        string $token,
+        ResetPasswordService $resetPasswordService,
+        EntityManagerInterface $entityManager,
+        ResetPasswordValidation $resetPasswordValidation,
+    ): Response {
+        try {
+            $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
+        } catch (ResetPasswordExceptionInterface) {
+            return new Response(status: Response::HTTP_FORBIDDEN);
         }
 
-        return new Response(null, Response::HTTP_BAD_REQUEST);
+        if (!$resetPasswordValidation->validate()->passed()) {
+            return new Response(status: Response::HTTP_BAD_REQUEST);
+        }
+
+        $resetPasswordService->changePassword(
+            $token,
+            $entityManager,
+            $resetPasswordValidation->getDto($user)->getPassword(),
+        );
+
+        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 
     public function checkToken(string $token): Response
     {
         try {
             $this->resetPasswordHelper->validateTokenAndFetchUser($token);
-        } catch (ResetPasswordExceptionInterface) {
-            return new Response(null, Response::HTTP_FORBIDDEN);
+        } catch (ResetPasswordExceptionInterface $exception) {
+            return new Response(status: Response::HTTP_FORBIDDEN);
         }
 
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 
-    public function changePassword(
-        string $token,
+    public function sendEmail(
         ResetPasswordService $resetPasswordService,
-        UserPasswordEncoderInterface $passwordEncoder,
-        EntityManagerInterface $entityManager,
-        Request $request
+        ResetPasswordRequestValidation $resetPasswordRequestValidation,
+        ParameterBagInterface $parameterBag,
     ): Response {
-        try {
-            $this->resetPasswordHelper->validateTokenAndFetchUser($token);
-        } catch (ResetPasswordExceptionInterface) {
-            return new Response(null, Response::HTTP_FORBIDDEN);
-        }
-        $form = $this->createForm(ResetPasswordForm::class);
-        $resetPasswordService->setForm($form);
-        if ($resetPasswordService->checkForm($request)) {
-            $resetPasswordService->changePassword($token, $passwordEncoder, $entityManager);
-
-            return new Response(null, Response::HTTP_NO_CONTENT);
+        if (!$resetPasswordRequestValidation->validate()->passed()) {
+            return new Response(status: Response::HTTP_BAD_REQUEST);
         }
 
-        return new Response(null, Response::HTTP_BAD_REQUEST);
+        $resetPasswordService->sendResetEmail($parameterBag, $resetPasswordRequestValidation->getDto()->getEmail());
+
+        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 }

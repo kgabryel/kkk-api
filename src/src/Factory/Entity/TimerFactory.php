@@ -3,20 +3,17 @@
 namespace App\Factory\Entity;
 
 use App\Entity\Timer;
-use App\Model\Timer as TimerModel;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\TimerValidation;
 
 class TimerFactory extends EntityFactory
 {
-    public function create(FormInterface $form, Request $request): ?Timer
+    public function create(TimerValidation $timerValidation): ?Timer
     {
-        $form->handleRequest($request);
-        if (!$form->isSubmitted() || !$form->isValid()) {
+        if (!$timerValidation->validate()->passed()) {
             return null;
         }
-        /** @var TimerModel $data */
-        $data = $form->getData();
+
+        $data = $timerValidation->getDto();
         $timer = new Timer();
         $timer->setUser($this->user);
         $timer->setName($data->getName());

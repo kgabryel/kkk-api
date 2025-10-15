@@ -3,54 +3,46 @@
 namespace App\Entity;
 
 use App\Repository\RecipePositionRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=RecipePositionRepository::class)
- */
+#[ORM\Entity(repositoryClass: RecipePositionRepository::class)]
 class RecipePosition
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private int $id;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Ingredient::class, inversedBy="recipePositions")
-     */
-    private ?Ingredient $ingredient;
-
-    /**
-     * @ORM\Column(type="float", nullable=true)
-     */
-    private ?float $amount;
-
-    /**
-     * @ORM\Column(type="string", length=100)
-     */
-    private string $measure;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: Types::BOOLEAN)]
     private bool $additional;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=RecipePositionGroup::class, inversedBy="recipePosition")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $amount;
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $id;
+
+    #[ORM\ManyToOne(targetEntity: Ingredient::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?Ingredient $ingredient;
+
+    #[ORM\Column(type: Types::STRING, length: 100)]
+    private string $measure;
+
+    #[ORM\ManyToOne(targetEntity: Recipe::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?Recipe $recipe;
+
+    #[ORM\ManyToOne(targetEntity: RecipePositionGroup::class, inversedBy: 'recipePosition')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private RecipePositionGroup $recipePositionGroup;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Recipe::class, inversedBy="recipePositions")
-     */
-    private ?Recipe $recipe;
+    public function getAmount(): ?float
+    {
+        return $this->amount;
+    }
 
     public function getId(): int
     {
-        return $this->id;
+        return $this->id ?? 0;
     }
 
     public function getIngredient(): ?Ingredient
@@ -58,35 +50,14 @@ class RecipePosition
         return $this->ingredient;
     }
 
-    public function setIngredient(?Ingredient $ingredient): self
-    {
-        $this->ingredient = $ingredient;
-
-        return $this;
-    }
-
-    public function getAmount(): ?float
-    {
-        return $this->amount;
-    }
-
-    public function setAmount(?float $amount): self
-    {
-        $this->amount = $amount;
-
-        return $this;
-    }
-
-    public function getMeasure(): ?string
+    public function getMeasure(): string
     {
         return $this->measure;
     }
 
-    public function setMeasure(string $measure): self
+    public function getRecipe(): ?Recipe
     {
-        $this->measure = $measure;
-
-        return $this;
+        return $this->recipe;
     }
 
     public function isAdditional(): bool
@@ -101,26 +72,37 @@ class RecipePosition
         return $this;
     }
 
-    public function getRecipePositionGroup(): RecipePositionGroup
+    public function setAmount(?float $amount): self
     {
-        return $this->recipePositionGroup;
-    }
-
-    public function setRecipePositionGroup(RecipePositionGroup $recipePositionGroup): self
-    {
-        $this->recipePositionGroup = $recipePositionGroup;
+        $this->amount = $amount;
 
         return $this;
     }
 
-    public function getRecipe(): ?Recipe
+    public function setIngredient(?Ingredient $ingredient): self
     {
-        return $this->recipe;
+        $this->ingredient = $ingredient;
+
+        return $this;
+    }
+
+    public function setMeasure(string $measure): self
+    {
+        $this->measure = $measure;
+
+        return $this;
     }
 
     public function setRecipe(?Recipe $recipe): self
     {
         $this->recipe = $recipe;
+
+        return $this;
+    }
+
+    public function setRecipePositionGroup(RecipePositionGroup $recipePositionGroup): self
+    {
+        $this->recipePositionGroup = $recipePositionGroup;
 
         return $this;
     }

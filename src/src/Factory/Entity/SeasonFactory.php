@@ -3,20 +3,17 @@
 namespace App\Factory\Entity;
 
 use App\Entity\Season;
-use App\Model\Season as SeasonModel;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\SeasonValidation;
 
 class SeasonFactory extends EntityFactory
 {
-    public function create(FormInterface $form, Request $request): ?Season
+    public function create(SeasonValidation $seasonValidation): ?Season
     {
-        $form->handleRequest($request);
-        if (!$form->isSubmitted() || !$form->isValid()) {
+        if (!$seasonValidation->validate()->passed()) {
             return null;
         }
-        /** @var SeasonModel $data */
-        $data = $form->getData();
+
+        $data = $seasonValidation->getDto();
         $season = new Season();
         $season->setUser($this->user);
         $season->setIngredient($data->getIngredient());

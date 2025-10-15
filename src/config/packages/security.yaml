@@ -1,15 +1,17 @@
 security:
-  encoders:
+  password_hashers:
     App\Entity\User:
       algorithm: auto
 
   # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
   providers:
-    # used to reload user from session & other features (e.g. switch_user)
     app_user_provider:
       entity:
         class: App\Entity\User
         property: email
+    jwt:
+      lexik_jwt:
+        class: App\Entity\User
   firewalls:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -17,7 +19,7 @@ security:
     login:
       pattern: ^/api/login
       stateless: true
-      anonymous: true
+      provider: app_user_provider
       json_login:
         check_path: /api/login_check
         success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -25,55 +27,23 @@ security:
     refresh:
       pattern: ^/api/refresh_token
       stateless: true
-      anonymous: true
-    register:
-      pattern: ^/api/register
-      stateless: true
-      anonymous: true
-    reset_password:
-      pattern: ^/api/reset-password
-      stateless: true
-      anonymous: true
-    change_password:
-      pattern: ^/api/change-password
-      stateless: true
-      anonymous: true
-    check_token:
-      pattern: ^/api/check-token
-      stateless: true
-      anonymous: true
-    public_recipes:
-      pattern: ^/api/public/recipes/
-      stateless: true
-      anonymous: true
-    facebook:
-      pattern: ^/api/facebook
-      stateless: true
-      anonymous: true
-    photos:
-      pattern: ^/api/recipes/\d+/photos/\d+/(small|medium|original)
-      stateless: true
-      anonymous: lazy
-      guard:
-        authenticators:
-          - lexik_jwt_authentication.jwt_token_authenticator
+      provider: jwt
+      refresh_jwt:
+        check_path: /api/refresh_token
     oza:
       pattern: ^/api/oza/supplies
       stateless: true
-      anonymous: true
-      guard:
-        authenticators:
-          - App\Security\ApiAuthenticator
+      provider: app_user_provider
+      custom_authenticators:
+        - App\Security\ApiAuthenticator
     api:
       pattern: ^/api
+      provider: jwt
       stateless: true
-      guard:
-        authenticators:
-          - lexik_jwt_authentication.jwt_token_authenticator
+      jwt: ~
     main:
-      anonymous: true
       lazy: true
-      provider: app_user_provider
+      provider: jwt
 
       # activate different ways to authenticate
       # https://symfony.com/doc/current/security.html#firewalls-authentication
@@ -84,15 +54,14 @@ security:
   # Easy way to control access for large sections of your site
   # Note: Only the *first* access control that matches will be used
   access_control:
-    - { path: ^/api/reset-password, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/change-password, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/check-token, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/refresh_token, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/facebook/redirect, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/facebook/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/public/recipes, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api/recipes/\d+/photos/\d+/(small|medium|original), roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/api/reset-password, roles: PUBLIC_ACCESS }
+    - { path: ^/api/change-password, roles: PUBLIC_ACCESS }
+    - { path: ^/api/check-token, roles: PUBLIC_ACCESS }
+    - { path: ^/api/login, roles: PUBLIC_ACCESS }
+    - { path: ^/api/register, roles: PUBLIC_ACCESS }
+    - { path: ^/api/refresh_token, roles: PUBLIC_ACCESS }
+    - { path: ^/api/facebook/redirect, roles: PUBLIC_ACCESS }
+    - { path: ^/api/facebook/login, roles: PUBLIC_ACCESS }
+    - { path: ^/api/public/recipes, roles: PUBLIC_ACCESS }
+    - { path: ^/api/recipes/\d+/photos/\d+/(small|medium|original), roles: PUBLIC_ACCESS }
     - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
-    # - { path: ^/profile, roles: ROLE_USER }

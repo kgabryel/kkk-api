@@ -10,12 +10,7 @@ trait FindTrait
     {
         return $this->findBy(
             ['user' => $user],
-            ['id' => 'DESC']
+            ['id' => 'DESC'],
         );
-    }
-
-    public function findById(int $id, User $user): mixed
-    {
-        return $this->findOneBy(compact('id', 'user'));
     }
 }

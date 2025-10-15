@@ -2,17 +2,18 @@
 
 namespace App\Security;
 
-use App\Entity\User;
 use App\Repository\ApiKeyRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
+use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 
-class ApiAuthenticator extends AbstractGuardAuthenticator
+class ApiAuthenticator extends AbstractAuthenticator
 {
     private const AUTH_HEADER = 'X-AUTH-TOKEN';
     private ApiKeyRepository $apiKeyRepository;
@@ -22,48 +23,38 @@ class ApiAuthenticator extends AbstractGuardAuthenticator
         $this->apiKeyRepository = $apiKeyRepository;
     }
 
-    public function start(Request $request, AuthenticationException $authException = null): Response
+    public function authenticate(Request $request): Passport
     {
-        return new Response(null, Response::HTTP_UNAUTHORIZED);
-    }
+        $apiToken = $request->headers->get(self::AUTH_HEADER);
+        if ($apiToken === null) {
+            throw new CustomUserMessageAuthenticationException('Token missing.');
+        }
 
-    public function supports(Request $request): bool
-    {
-        return $request->headers->has(self::AUTH_HEADER);
-    }
-
-    public function getCredentials(Request $request)
-    {
-        return $request->headers->get(self::AUTH_HEADER);
-    }
-
-    public function getUser(mixed $credentials, UserProviderInterface $userProvider): ?User
-    {
         $key = $this->apiKeyRepository->findOneBy([
-            'key' => $credentials,
-            'active' => true
+            'active' => true,
+            'key' => $apiToken,
         ]);
+        if ($key === null) {
+            throw new CustomUserMessageAuthenticationException('Token invalid.');
+        }
 
-        return $key?->getUser();
-    }
+        $user = $key->getUser();
 
-    public function checkCredentials(mixed $credentials, UserInterface $user): bool
-    {
-        return true;
+        return new SelfValidatingPassport(new UserBadge($user->getUserIdentifier(), fn () => $user));
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
-        return new Response(null, Response::HTTP_UNAUTHORIZED);
+        return new Response(status: Response::HTTP_UNAUTHORIZED);
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey): ?Response
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
         return null;
     }
 
-    public function supportsRememberMe(): bool
+    public function supports(Request $request): bool
     {
-        return false;
+        return true;
     }
 }

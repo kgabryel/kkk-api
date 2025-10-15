@@ -3,36 +3,37 @@
 namespace App\Service\Auth;
 
 use App\Entity\User;
-use DateTime;
-use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 class TokensService
 {
-    private JWTTokenManagerInterface $JWTTokenManager;
-    private RefreshTokenManagerInterface $refreshTokenManager;
+    private EntityManagerInterface $entityManager;
+    private RefreshTokenGeneratorInterface $refreshTokenManager;
+    private JWTTokenManagerInterface $tokenManager;
 
     public function __construct(
-        JWTTokenManagerInterface $JWTTokenManager,
-        RefreshTokenManagerInterface $refreshTokenManager
+        JWTTokenManagerInterface $tokenManager,
+        RefreshTokenGeneratorInterface $refreshTokenManager,
+        EntityManagerInterface $entityManager,
     ) {
-        $this->JWTTokenManager = $JWTTokenManager;
+        $this->tokenManager = $tokenManager;
         $this->refreshTokenManager = $refreshTokenManager;
+        $this->entityManager = $entityManager;
     }
 
     public function getTokens(User $user): array
     {
-        $refreshToken = $this->refreshTokenManager->create();
-        $refreshToken->setUsername($user->getUsername());
-        $datetime = new DateTime();
-        $datetime->modify('+2592000 seconds');
-        $refreshToken->setValid($datetime);
+        $refreshToken = $this->refreshTokenManager->createForUserWithTtl($user, 2592000);
+        $refreshToken->setUsername($user->getUserIdentifier());
         $refreshToken->setRefreshToken();
-        $this->refreshTokenManager->save($refreshToken);
+        $this->entityManager->persist($refreshToken);
+        $this->entityManager->flush();
 
         return [
-            'token' => $this->JWTTokenManager->create($user),
-            'refresh_token' => $refreshToken->getRefreshToken()
+            'refresh_token' => $refreshToken->getRefreshToken(),
+            'token' => $this->tokenManager->create($user),
         ];
     }
 }

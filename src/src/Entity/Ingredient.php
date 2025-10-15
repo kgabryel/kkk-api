@@ -3,74 +3,48 @@
 namespace App\Entity;
 
 use App\Repository\IngredientRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=IngredientRepository::class)
- */
+#[ORM\Entity(repositoryClass: IngredientRepository::class)]
 class Ingredient
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private int $id;
-
-    /**
-     * @ORM\Column(type="string", length=100)
-     */
-    private string $name;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: Types::BOOLEAN)]
     private bool $available;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="ingredients")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private User $user;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $id;
 
-    /**
-     * @ORM\OneToMany(targetEntity=RecipePosition::class, mappedBy="ingredient", orphanRemoval=true)
-     * @ORM\OrderBy({"id" = "ASC"})
-     */
-    private Collection $recipePositions;
+    #[ORM\Column(type: Types::STRING, length: 100)]
+    private string $name;
 
-    /**
-     * @ORM\OneToOne(targetEntity=Season::class, mappedBy="ingredient", orphanRemoval=true)
-     */
-    private ?Season $season;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $ozaId;
 
-    public function __construct()
-    {
-        $this->recipePositions = new ArrayCollection();
-    }
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private User $user;
 
     public function getId(): int
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function getOzaId(): ?int
     {
-        $this->name = $name;
+        return $this->ozaId;
+    }
 
-        return $this;
+    public function getUser(): User
+    {
+        return $this->user;
     }
 
     public function isAvailable(): bool
@@ -85,68 +59,23 @@ class Ingredient
         return $this;
     }
 
-    public function getUser(): User
+    public function setName(string $name): self
     {
-        return $this->user;
-    }
-
-    public function setUser(User $user): self
-    {
-        $this->user = $user;
+        $this->name = $name;
 
         return $this;
-    }
-
-    /**
-     * @return Collection|RecipePosition[]
-     */
-    public function getRecipePositions(): Collection
-    {
-        return $this->recipePositions;
-    }
-
-    public function addRecipePosition(RecipePosition $recipePosition): self
-    {
-        if (!$this->recipePositions->contains($recipePosition)) {
-            $this->recipePositions[] = $recipePosition;
-            $recipePosition->setIngredient($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRecipePosition(RecipePosition $recipePosition): self
-    {
-        $this->recipePositions->removeElement($recipePosition);
-
-        return $this;
-    }
-
-    public function getSeason(): ?Season
-    {
-        return $this->season;
-    }
-
-    public function setSeason(Season $season): self
-    {
-        // set the owning side of the relation if necessary
-        if ($season->getIngredient() !== $this) {
-            $season->setIngredient($this);
-        }
-
-        $this->season = $season;
-
-        return $this;
-    }
-
-    public function getOzaId(): ?int
-    {
-        return $this->ozaId;
     }
 
     public function setOzaId(?int $ozaId): self
     {
         $this->ozaId = $ozaId;
+
+        return $this;
+    }
+
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
 
         return $this;
     }

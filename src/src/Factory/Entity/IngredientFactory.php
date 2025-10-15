@@ -3,20 +3,17 @@
 namespace App\Factory\Entity;
 
 use App\Entity\Ingredient;
-use App\Model\Ingredient as IngredientModel;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\CreateIngredientValidation;
 
 class IngredientFactory extends EntityFactory
 {
-    public function create(FormInterface $form, Request $request): ?Ingredient
+    public function create(CreateIngredientValidation $ingredientValidation): ?Ingredient
     {
-        $form->handleRequest($request);
-        if (!$form->isSubmitted() || !$form->isValid()) {
+        if (!$ingredientValidation->validate()->passed()) {
             return null;
         }
-        /** @var IngredientModel $data */
-        $data = $form->getData();
+
+        $data = $ingredientValidation->getDto();
         $ingredient = new Ingredient();
         $ingredient->setUser($this->user);
         $ingredient->setName($data->getName());

@@ -17,17 +17,17 @@ abstract class EntityService
         $this->user = $userService->getUser();
     }
 
-    abstract public function find(int $id): bool;
-
-    protected function saveEntity(object $entity): void
-    {
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
-    }
+    abstract public function find(int $id): ?object;
 
     protected function removeEntity(object $entity): void
     {
         $this->entityManager->remove($entity);
+        $this->entityManager->flush();
+    }
+
+    protected function saveEntity(object $entity): void
+    {
+        $this->entityManager->persist($entity);
         $this->entityManager->flush();
     }
 }

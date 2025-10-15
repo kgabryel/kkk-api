@@ -3,45 +3,49 @@
 namespace App\Entity;
 
 use App\Repository\SeasonRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=SeasonRepository::class)
- */
+#[ORM\Entity(repositoryClass: SeasonRepository::class)]
 class Season
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
     private int $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="seasons")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private User $user;
+    #[ORM\OneToOne(targetEntity: Ingredient::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private Ingredient $ingredient;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: Types::INTEGER)]
     private int $start;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: Types::INTEGER)]
     private int $stop;
 
-    /**
-     * @ORM\OneToOne(targetEntity=Ingredient::class, inversedBy="season")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private Ingredient $ingredient;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private User $user;
 
     public function getId(): int
     {
         return $this->id;
+    }
+
+    public function getIngredient(): Ingredient
+    {
+        return $this->ingredient;
+    }
+
+    public function getStart(): int
+    {
+        return $this->start;
+    }
+
+    public function getStop(): int
+    {
+        return $this->stop;
     }
 
     public function getUser(): User
@@ -49,16 +53,11 @@ class Season
         return $this->user;
     }
 
-    public function setUser(User $user): self
+    public function setIngredient(Ingredient $ingredient): self
     {
-        $this->user = $user;
+        $this->ingredient = $ingredient;
 
         return $this;
-    }
-
-    public function getStart(): int
-    {
-        return $this->start;
     }
 
     public function setStart(int $start): self
@@ -68,11 +67,6 @@ class Season
         return $this;
     }
 
-    public function getStop(): int
-    {
-        return $this->stop;
-    }
-
     public function setStop(int $stop): self
     {
         $this->stop = $stop;
@@ -80,14 +74,9 @@ class Season
         return $this;
     }
 
-    public function getIngredient(): Ingredient
+    public function setUser(User $user): self
     {
-        return $this->ingredient;
-    }
-
-    public function setIngredient(Ingredient $ingredient): self
-    {
-        $this->ingredient = $ingredient;
+        $this->user = $user;
 
         return $this;
     }

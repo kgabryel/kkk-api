@@ -37,7 +37,7 @@ final class Version20210605170401 extends AbstractMigration
         );
         $this->addSql('CREATE INDEX IDX_389B783A76ED395 ON tag (user_id)');
         $this->addSql(
-            'CREATE TABLE "user" (id INT NOT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, PRIMARY KEY(id))'
+            'CREATE TABLE "user" (id INT NOT NULL, email VARCHAR(254) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, PRIMARY KEY(id))'
         );
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D649E7927C74 ON "user" (email)');
         $this->addSql(

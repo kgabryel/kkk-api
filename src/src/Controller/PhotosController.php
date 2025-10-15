@@ -2,87 +2,94 @@
 
 namespace App\Controller;
 
-use App\Dto\Recipe;
+use App\Config\PhotoType;
 use App\Entity\Photo;
+use App\Entity\Recipe;
 use App\Factory\Entity\PhotoFactory;
-use App\Form\PhotoForm;
 use App\Repository\PhotoRepository;
+use App\Response\RecipeResponse;
 use App\Service\Entity\PhotoService;
 use App\Service\Entity\RecipeService;
-use App\Service\SerializeService;
 use App\Utils\PhotoUtils;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\PhotoValidation;
+use App\Validation\ReorderPhotosValidation;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class PhotosController extends BaseController
 {
-    private SerializeService $serializer;
-
-    public function __construct()
+    public function destroy(int $photoId, PhotoService $photoService): Response
     {
-        $this->serializer = SerializeService::getInstance(Recipe::class);
+        $photo = $photoService->find($photoId);
+        if (!($photo instanceof Photo)) {
+            return $this->getNotFoundResponse();
+        }
+
+        $recipe = $photo->getRecipe();
+        $photoService->remove($photo);
+
+        return new RecipeResponse($this->dtoFactoryDispatcher, $recipe, Response::HTTP_OK);
+    }
+
+    public function reorderPhotos(
+        int $id,
+        RecipeService $recipeService,
+        ReorderPhotosValidation $photosValidation,
+    ): Response {
+        $recipe = $recipeService->find($id);
+        if (!($recipe instanceof Recipe)) {
+            return $this->getNotFoundResponse();
+        }
+
+        if (!$recipeService->reorderPhotos($recipe, $photosValidation)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return new RecipeResponse($this->dtoFactoryDispatcher, $recipe, Response::HTTP_OK);
     }
 
     public function show(
         string $type,
         int $photoId,
         PhotoRepository $photoRepository,
-        KernelInterface $kernel
+        KernelInterface $kernel,
+        PhotoService $photoService,
     ): Response {
         $photo = $photoRepository->find($photoId);
         if ($photo === null) {
-            return new Response(null, Response::HTTP_FORBIDDEN);
+            return $this->getForbiddenResponse();
         }
-        if (!PhotoService::checkAccess($photo, $this->getUser())) {
-            return new Response(null, Response::HTTP_FORBIDDEN);
+
+        if (!$photoService->checkAccess($photo, $this->getUser())) {
+            return $this->getForbiddenResponse();
         }
+
         $response = new Response();
         $response->headers->set('Content-Type', $photo->getType());
         $fileName = $photo->getFileName() ?? '';
         $response->setContent(
-            (string)file_get_contents(PhotoUtils::getPath($kernel->getProjectDir(), $type, $fileName))
+            file_get_contents(PhotoUtils::getPath($kernel->getProjectDir(), PhotoType::from($type), $fileName)),
         );
 
         return $response;
     }
 
-    public function store(int $id, RecipeService $recipeService, PhotoFactory $photoFactory, Request $request): Response
-    {
-        if (!$recipeService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
+    public function store(
+        int $id,
+        RecipeService $recipeService,
+        PhotoFactory $photoFactory,
+        PhotoValidation $photoValidation,
+    ): Response {
+        $recipe = $recipeService->find($id);
+        if (!($recipe instanceof Recipe)) {
+            return $this->getNotFoundResponse();
         }
 
-        $form = $this->createForm(PhotoForm::class, null, [
-            'method' => Request::METHOD_POST
-        ]);
-        $photo = $photoFactory->create($form, $request, $recipeService->getRecipe());
+        $photo = $photoFactory->create($photoValidation, $recipe);
         if ($photo === false) {
-            return new Response(null, Response::HTTP_BAD_REQUEST);
+            return $this->getBadRequestResponse();
         }
 
-        return new Response($this->serializer->serialize($recipeService->getRecipe()), Response::HTTP_OK);
-    }
-
-    public function destroy(int $photoId, PhotoService $photoService): Response
-    {
-        if (!$photoService->find($photoId)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
-        }
-        /** @var Photo $recipe */
-        $recipe = $photoService->getPhoto()->getRecipe();
-        $photoService->remove();
-
-        return new Response($this->serializer->serialize($recipe), Response::HTTP_OK);
-    }
-
-    public function reorderPhotos(int $id, RecipeService $recipeService, Request $request): Response
-    {
-        if (!$recipeService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
-        }
-        $recipeService->reorderPhotos($request);
-
-        return new Response($this->serializer->serialize($recipeService->getRecipe()), Response::HTTP_OK);
+        return new RecipeResponse($this->dtoFactoryDispatcher, $recipe, Response::HTTP_CREATED);
     }
 }

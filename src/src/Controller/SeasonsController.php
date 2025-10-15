@@ -2,63 +2,59 @@
 
 namespace App\Controller;
 
-use App\Dto\Season;
+use App\Entity\Season;
 use App\Factory\Entity\SeasonFactory;
-use App\Form\EditSeasonForm;
-use App\Form\SeasonForm;
 use App\Repository\SeasonRepository;
+use App\Response\SeasonListResponse;
+use App\Response\SeasonResponse;
 use App\Service\Entity\SeasonService;
-use App\Service\SerializeService;
-use Symfony\Component\HttpFoundation\Request;
+use App\Validation\EditSeasonValidation;
+use App\Validation\SeasonValidation;
 use Symfony\Component\HttpFoundation\Response;
 
 class SeasonsController extends BaseController
 {
-    private SerializeService $serializer;
-
-    public function __construct()
-    {
-        $this->serializer = SerializeService::getInstance(Season::class);
-    }
-
-    public function index(SeasonRepository $seasonRepository): Response
-    {
-        return new Response($this->serializer->serializeArray($seasonRepository->findForUser($this->getUser())));
-    }
-
-    public function store(SeasonFactory $seasonFactory, Request $request): Response
-    {
-        $form = $this->createForm(SeasonForm::class);
-        $season = $seasonFactory->create($form, $request);
-        if ($season === null) {
-            return $this->returnErrors($form);
-        }
-
-        return new Response($this->serializer->serialize($season));
-    }
-
-    public function modify(int $id, Request $request, SeasonService $seasonService): Response
-    {
-        if (!$seasonService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
-        }
-        $form = $this->createForm(EditSeasonForm::class, null, [
-            self::METHOD => Request::METHOD_PATCH
-        ]);
-        if (!$seasonService->update($form, $request)) {
-            return $this->returnErrors($form);
-        }
-
-        return new Response($this->serializer->serialize($seasonService->getSeason()), Response::HTTP_OK);
-    }
-
     public function destroy(int $id, SeasonService $seasonService): Response
     {
-        if (!$seasonService->find($id)) {
-            return new Response(null, Response::HTTP_NOT_FOUND);
+        $season = $seasonService->find($id);
+        if (!($season instanceof Season)) {
+            return $this->getNotFoundResponse();
         }
-        $seasonService->remove();
 
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        $seasonService->remove($season);
+
+        return $this->getNoContentResponse();
+    }
+
+    public function index(SeasonRepository $seasonRepository): SeasonListResponse
+    {
+        return new SeasonListResponse(
+            $this->dtoFactoryDispatcher,
+            ...$seasonRepository->findForUser($this->getUser()),
+        );
+    }
+
+    public function modify(int $id, EditSeasonValidation $seasonValidation, SeasonService $seasonService): Response
+    {
+        $season = $seasonService->find($id);
+        if (!($season instanceof Season)) {
+            return $this->getNotFoundResponse();
+        }
+
+        if (!$seasonService->update($season, $seasonValidation)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return new SeasonResponse($this->dtoFactoryDispatcher, $season, Response::HTTP_OK);
+    }
+
+    public function store(SeasonFactory $seasonFactory, SeasonValidation $seasonValidation): Response
+    {
+        $season = $seasonFactory->create($seasonValidation);
+        if (!($season instanceof Season)) {
+            return $this->getBadRequestResponse();
+        }
+
+        return new SeasonResponse($this->dtoFactoryDispatcher, $season, Response::HTTP_CREATED);
     }
 }

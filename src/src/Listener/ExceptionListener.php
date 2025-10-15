@@ -19,7 +19,7 @@ class ExceptionListener implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
-        return [KernelEvents::EXCEPTION => ['onKernelException', 2]];
+        return [KernelEvents::EXCEPTION => 'onKernelException'];
     }
 
     public function onKernelException(ExceptionEvent $event): void
@@ -30,11 +30,11 @@ class ExceptionListener implements EventSubscriberInterface
             json_encode($e->getTrace(), JSON_THROW_ON_ERROR),
             json_encode([
                 'code' => $e->getCode(),
+                'exception' => FlattenException::createFromThrowable($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
-                'exception' => FlattenException::createFromThrowable($e)
-            ], JSON_THROW_ON_ERROR)
+            ], JSON_THROW_ON_ERROR),
         );
     }
 }

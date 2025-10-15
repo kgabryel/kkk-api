@@ -1,26 +1,20 @@
-version: '3'
 services:
   kkk-postgres:
-    image: postgres:13.2
+    image: postgres:17.4
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgrespass
       - POSTGRES_DB=postgres
     ports:
       - '5432:5432'
-    expose:
-      - '5432'
     volumes:
       - ./pgdata:/var/lib/postgresql/data
   kkk-nginx:
-    image: nginx:1.19
+    image: nginx:1.25
     container_name: kkk-nginx
     ports:
       - '80:80'
       - '443:443'
-    expose:
-      - '443'
-      - '80'
     volumes:
       - ./../src:/var/www/html/
       - ./site.conf:/etc/nginx/conf.d/site.conf
@@ -29,20 +23,15 @@ services:
     depends_on:
       - kkk-php
       - kkk-ssl
-    links:
-      - kkk-php
   kkk-php:
     container_name: kkk-php
     build: ./php
     ports:
       - '9000:9000'
-    expose:
-      - '9000'
+      - '9003:9003'
     volumes:
       - ./../src:/var/www/html/
     depends_on:
-      - kkk-postgres
-    links:
       - kkk-postgres
   kkk-ssl:
     build: ./ssl

@@ -4,8 +4,8 @@ use App\Config\PhotoType;
 use App\Controller\AuthController;
 use App\Controller\IngredientsController;
 use App\Controller\OzaSuppliesController;
-use App\Controller\RecipesController;
 use App\Controller\PhotosController;
+use App\Controller\RecipesController;
 use App\Controller\ResetPasswordController;
 use App\Controller\SeasonsController;
 use App\Controller\TagsController;
@@ -17,11 +17,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\Component\Routing\Route;
 
-return static function (RoutingConfigurator $routes) {
-    /** Authentication routes */
+return static function (RoutingConfigurator $routes): RoutingConfigurator {
+    /* Authentication routes */
     $routes->add('api_login_check', '/api/login_check');
     $routes->add('gesdinet_jwt_refresh_token', ' /api/refresh_token')
-        ->controller('gesdinet.jwtrefreshtoken::refresh');
+        ->controller('gesdinet.jwtrefreshtoken:refresh');
     $routes->add('register', ' /api/register')
         ->controller(sprintf('%s::%s', UserController::class, 'register'))
         ->methods([Request::METHOD_POST]);
@@ -39,7 +39,7 @@ return static function (RoutingConfigurator $routes) {
         ->add(
             'getOzaSupplies',
             new Route('/oza-supplies'),
-            new Info([Request::METHOD_GET], 'geOzaSupplies')
+            new Info([Request::METHOD_GET], 'getOzaSupplies'),
         );
     /** Tags routes */
     $tagsGroup = new Group($routes, 'tags', '/api/tags');
@@ -74,22 +74,22 @@ return static function (RoutingConfigurator $routes) {
         ->add(
             'getSettings',
             new Route('/'),
-            new Info([Request::METHOD_GET], 'getSettings')
+            new Info([Request::METHOD_GET], 'getSettings'),
         )
         ->add(
             'switchAutocomplete',
             new Route('/switch-autocomplete'),
-            new Info([Request::METHOD_PATCH], 'switchAutocomplete')
+            new Info([Request::METHOD_PATCH], 'switchAutocomplete'),
         )
         ->add(
             'changeOzaKey',
             new Route('/change-oza-key'),
-            new Info([Request::METHOD_PATCH], 'changeOzaKey')
+            new Info([Request::METHOD_PATCH], 'changeOzaKey'),
         )
         ->add(
             'changePassword',
             new Route('/change-password'),
-            new Info([Request::METHOD_POST], 'changePassword')
+            new Info([Request::METHOD_POST], 'changePassword'),
         );
     /** api keys routes */
     $apiKeyGroup = new Group($routes, 'apiKey', '/api/api-keys');
@@ -97,24 +97,24 @@ return static function (RoutingConfigurator $routes) {
         ->add(
             'getKeys',
             new Route('/'),
-            new Info([Request::METHOD_GET], 'getKeys')
+            new Info([Request::METHOD_GET], 'getKeys'),
         )
         ->add(
             'generateKey',
             new Route('/'),
-            new Info([Request::METHOD_POST], 'generateKey')
+            new Info([Request::METHOD_POST], 'generateKey'),
         )
         ->add(
             'deleteKey',
             new Route('/{id}'),
             new Info([Request::METHOD_DELETE], 'destroyKey'),
-            ['id' => '\d+']
+            ['id' => '\d+'],
         )
         ->add(
             'switchKey',
             new Route('/{id}'),
             new Info([Request::METHOD_PATCH], 'switchKey'),
-            ['id' => '\d+']
+            ['id' => '\d+'],
         );
     /** api public recipes routes */
     $publicRecipesGroup = new Group($routes, 'publicRecipes', 'api/public/recipes');
@@ -122,7 +122,7 @@ return static function (RoutingConfigurator $routes) {
         ->add(
             'publicRecipes',
             new Route('/{id}'),
-            new Info([Request::METHOD_GET], 'public')
+            new Info([Request::METHOD_GET], 'public'),
         );
     /** Timers routes */
     $timersGroup = new Group($routes, 'timers', '/api/timers');
@@ -137,17 +137,17 @@ return static function (RoutingConfigurator $routes) {
         ->add(
             'sendEmail',
             new Route('/api/reset-password'),
-            new Info([Request::METHOD_POST], 'sendEmail')
+            new Info([Request::METHOD_POST], 'sendEmail'),
         )
         ->add(
             'changePassword',
             new Route('/api/change-password/{token}'),
-            new Info([Request::METHOD_POST], 'changePassword')
+            new Info([Request::METHOD_POST], 'changePassword'),
         )
         ->add(
             'checkToken',
             new Route('/api/check-token/{token}'),
-            new Info([Request::METHOD_GET], 'checkToken')
+            new Info([Request::METHOD_GET], 'checkToken'),
         );
     $photosGroup = new Group($routes, 'photos', '/api/recipes');
     $photosGroup->setController(PhotosController::class)
@@ -155,29 +155,30 @@ return static function (RoutingConfigurator $routes) {
             'store',
             new Route('/{id}/photos'),
             new Info([Request::METHOD_POST], 'store'),
-            ['id' => '\d+']
+            ['id' => '\d+'],
         )
         ->add(
             'destroy',
             new Route('/{recipeId}/photos/{photoId}'),
             new Info([Request::METHOD_DELETE], 'destroy'),
-            ['recipeId' => '\d+', 'photoId' => '\d+']
+            ['recipeId' => '\d+', 'photoId' => '\d+'],
         )
         ->add(
             'show',
             new Route('/{recipeId}/photos/{photoId}/{type}'),
             new Info([Request::METHOD_GET], 'show'),
             [
-                'type' => sprintf('(%s)', implode('|', array_column(PhotoType::cases(), 'value'))),
+                'photoId' => '\d+',
                 'recipeId' => '\d+',
-                'photoId' => '\d+'
-            ]
+                'type' => sprintf('(%s)', implode('|', array_column(PhotoType::cases(), 'value'))),
+            ],
         )
         ->add(
             'reorderPhotos',
             new Route('/{id}/photos'),
             new Info([Request::METHOD_PATCH], 'reorderPhotos'),
-            ['id' => '\d+']
+            ['id' => '\d+'],
         );
+
     return $routes;
 };
