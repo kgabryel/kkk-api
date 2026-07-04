@@ -33,6 +33,7 @@ class SetupAllowedMethodsHelper
         );
         $methodsToSkip[] = '__construct';
         $methodsToSkip[] = '__clone';
+        $methodsToSkip[] = '__wakeup';
         $reflection = new ReflectionClass($className);
         foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             $methodName = $method->getName();

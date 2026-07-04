@@ -553,7 +553,7 @@ class ControllerDataProvider
             ],
             'standardowy user, autocomplete = true, brak ozaKey' => ['settings' => $settings],
             'użytkownik FB, autocomplete = false' => [
-                $settings->clone(['autocomplete' => false], ['fbId' => 'abc']),
+                $settings->clone(['autocomplete' => false], ['fbId' => 999999]),
             ],
         ];
     }
