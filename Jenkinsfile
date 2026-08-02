@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         TAG_WEBHOOK = credentials('discord-tag-webhook')
+        PIPELINE_WEBHOOK = credentials('discord-pipeline-webhook')
     }
     stages {
         stage('PHP install') {
@@ -84,6 +85,48 @@ pipeline {
         }
     }
     post {
+        failure {
+            script {
+                def payload = """
+                {
+                    "content": "@everyone Błąd pipeline'a",
+                    "allowed_mentions": { "parse": ["everyone"] },
+                    "embeds": [{
+                        "title": "${env.JOB_NAME}",
+                        "description": "❌ Build nie przeszedł",
+                        "color": 16711680,
+                        "url": "${env.BUILD_URL}"
+                    }]
+                }
+                """
+                httpRequest(
+                    httpMode: 'POST',
+                    contentType: 'APPLICATION_JSON',
+                    requestBody: payload,
+                    url: env.PIPELINE_WEBHOOK
+                )
+            }
+        }
+        success {
+            script {
+                def payload = """
+                {
+                    "embeds": [{
+                    "title": "${env.JOB_NAME}",
+                    "description": "🎉 Build zakończony sukcesem",
+                    "color": 65280,
+                    "url": "${env.BUILD_URL}"
+                    }]
+                }
+                """
+                httpRequest(
+                    httpMode: 'POST',
+                    contentType: 'APPLICATION_JSON',
+                    requestBody: payload,
+                    url: env.PIPELINE_WEBHOOK
+                )
+            }
+        }
         always {
            cleanWs()
         }
