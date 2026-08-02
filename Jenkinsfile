@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+    environment {
+        TAG_WEBHOOK = credentials('discord-tag-webhook')
+    }
     stages {
         stage('PHP install') {
             steps {
@@ -73,6 +75,11 @@ pipeline {
                 sh 'sudo find /var/www/html/kkk-api -type f ! -path "/var/www/html/kkk-api/var/*" -exec chmod 644 {} \\;'
                 sh 'sudo find /var/www/html/kkk-api/var -type d -exec chmod 775 {} \\;'
                 sh 'sudo find /var/www/html/kkk-api/var -type f -exec chmod 664 {} \\;'
+            }
+        }
+        stage('mirror-sync') {
+            steps {
+                sh '/usr/local/bin/mirror-sync "$JOB_NAME" "$TAG_WEBHOOK"'
             }
         }
     }
