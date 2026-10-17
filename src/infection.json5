@@ -1,0 +1,35 @@
+{
+  "$schema": "vendor/infection/infection/resources/schema.json",
+  "source": {
+    "directories": [
+      "src"
+    ],
+    "excludes": [
+      "Kernel.php",
+      "ValidationPolicy/RequiredString.php",
+      "ValidationPolicy/RequiredBool.php"
+    ]
+  },
+  "logs": {
+    "text": "var/infection.txt",
+    "html": "var/infection.html"
+  },
+  "mutators": {
+    "@default": true,
+    "MethodCallRemoval": {
+      "ignore": [
+        "App\\Entity\\*::*",
+        "*::__construct"
+      ]
+    },
+    "IncrementInteger": false,
+    "DecrementInteger": false,
+    "PublicVisibility": false,
+    "NullSafeMethodCall": false,
+    "Coalesce": false,
+    "UnwrapTrim": false,
+    "CastInt": false,
+    "CastString": false,
+    "ProtectedVisibility": false
+  }
+}

@@ -1,0 +1,1 @@
+docker exec -it kkk-php sh -c 'php vendor/bin/phpmd src/ html phpmd.xml --report-file var/phpmd.html'

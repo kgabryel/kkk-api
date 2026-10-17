@@ -1,0 +1,67 @@
+security:
+  password_hashers:
+    App\Entity\User:
+      algorithm: auto
+
+  # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+  providers:
+    app_user_provider:
+      entity:
+        class: App\Entity\User
+        property: email
+    jwt:
+      lexik_jwt:
+        class: App\Entity\User
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    login:
+      pattern: ^/api/login
+      stateless: true
+      provider: app_user_provider
+      json_login:
+        check_path: /api/login_check
+        success_handler: lexik_jwt_authentication.handler.authentication_success
+        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+    refresh:
+      pattern: ^/api/refresh_token
+      stateless: true
+      provider: jwt
+      refresh_jwt:
+        check_path: /api/refresh_token
+    oza:
+      pattern: ^/api/oza/supplies
+      stateless: true
+      provider: app_user_provider
+      custom_authenticators:
+        - App\Security\ApiAuthenticator
+    api:
+      pattern: ^/api
+      provider: jwt
+      stateless: true
+      jwt: ~
+    main:
+      lazy: true
+      provider: jwt
+
+      # activate different ways to authenticate
+      # https://symfony.com/doc/current/security.html#firewalls-authentication
+
+      # https://symfony.com/doc/current/security/impersonating_user.html
+      # switch_user: true
+
+  # Easy way to control access for large sections of your site
+  # Note: Only the *first* access control that matches will be used
+  access_control:
+    - { path: ^/api/reset-password, roles: PUBLIC_ACCESS }
+    - { path: ^/api/change-password, roles: PUBLIC_ACCESS }
+    - { path: ^/api/check-token, roles: PUBLIC_ACCESS }
+    - { path: ^/api/login, roles: PUBLIC_ACCESS }
+    - { path: ^/api/register, roles: PUBLIC_ACCESS }
+    - { path: ^/api/refresh_token, roles: PUBLIC_ACCESS }
+    - { path: ^/api/facebook/redirect, roles: PUBLIC_ACCESS }
+    - { path: ^/api/facebook/login, roles: PUBLIC_ACCESS }
+    - { path: ^/api/public/recipes, roles: PUBLIC_ACCESS }
+    - { path: ^/api/recipes/\d+/photos/\d+/(small|medium|original), roles: PUBLIC_ACCESS }
+    - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

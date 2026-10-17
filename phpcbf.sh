@@ -1,0 +1,1 @@
+docker exec -it kkk-php sh -c 'php vendor/bin/phpcbf --cache=var/cache/phpcs.cache'

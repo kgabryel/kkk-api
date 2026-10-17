@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="PHPMD Rules">
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
+        <properties>
+            <property name="minimum" value="51"/>
+            <property name="ignoreprivate" value="true"/>
+            <property name="ignoreprotected" value="true"/>
+        </properties>
+    </rule>
+    <exclude-pattern>DataProvider</exclude-pattern>
+    <exclude-pattern>Helper</exclude-pattern>
+    <exclude-pattern>TestData</exclude-pattern>
+</ruleset>

@@ -1,0 +1,1 @@
+docker exec -it kkk-php sh -c 'php -d memory_limit=1024M vendor/bin/infection --initial-tests-php-options="-d memory_limit=1024M"'

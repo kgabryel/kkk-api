@@ -1,0 +1,101 @@
+{
+  "license": "proprietary",
+  "type": "project",
+  "require": {
+    "php": ">=8.4",
+    "ext-ctype": "*",
+    "ext-iconv": "*",
+    "ext-imagick": "*",
+    "doctrine/doctrine-bundle": "^2.16",
+    "doctrine/doctrine-migrations-bundle": "^3.4",
+    "doctrine/orm": "^3.5",
+    "friendsofsymfony/rest-bundle": "^3.8",
+    "gesdinet/jwt-refresh-token-bundle": "^v1.5",
+    "kgabryel/routing": "^v1.1",
+    "league/oauth2-client": "^2.8",
+    "league/oauth2-facebook": "^2.2",
+    "lexik/jwt-authentication-bundle": "^3.1",
+    "nelmio/cors-bundle": "^2.5",
+    "ramsey/uuid": "^4.9",
+    "symfony/console": "^7.0",
+    "symfony/dotenv": "^7.0",
+    "symfony/flex": "^2.0",
+    "symfony/framework-bundle": "^7.0",
+    "symfony/http-client": "^7.0",
+    "symfony/http-foundation": "^7.0",
+    "symfony/mailer": "^7.0",
+    "symfony/proxy-manager-bridge": "^v6.4",
+    "symfony/serializer": "^7.0",
+    "symfony/twig-bundle": "^7.0",
+    "symfony/validator": "^7.0",
+    "symfony/yaml": "^7.0",
+    "symfonycasts/reset-password-bundle": "^v1.23"
+  },
+  "require-dev": {
+    "dg/bypass-finals": "^1.9",
+    "ergebnis/composer-normalize": "^2.47",
+    "infection/infection": "^0.29.14",
+    "php-cs-fixer/shim": "^3.75",
+    "phpmd/phpmd": "^2.15",
+    "phpstan/phpstan": "*",
+    "phpunit/phpunit": "^12",
+    "rector/rector": "^2.0",
+    "slevomat/coding-standard": "^8.18",
+    "squizlabs/php_codesniffer": "*",
+    "symfony/browser-kit": "^7.0.0",
+    "symfony/maker-bundle": "*",
+    "symfony/phpunit-bridge": "*",
+    "symfony/web-profiler-bundle": "^7.0",
+    "zenstruck/foundry": "^2.5"
+  },
+  "conflict": {
+    "symfony/symfony": "*"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "App\\Tests\\": "tests/",
+      "App\\Tests\\Unit\\": "tests/unit/",
+      "App\\Tests\\Functional\\": "tests/functional/",
+      "App\\Tests\\Integration\\": "tests/integration/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "ergebnis/composer-normalize": true,
+      "infection/extension-installer": true,
+      "symfony/flex": true
+    },
+    "optimize-autoloader": true,
+    "preferred-install": {
+      "*": "dist"
+    },
+    "sort-packages": true
+  },
+  "extra": {
+    "symfony": {
+      "allow-contrib": false,
+      "docker": false,
+      "require": "^7.0"
+    }
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "@auto-scripts"
+    ],
+    "post-update-cmd": [
+      "@auto-scripts"
+    ],
+    "auto-scripts": {
+      "cache:clear": "symfony-cmd",
+      "assets:install %PUBLIC_DIR%": "symfony-cmd"
+    }
+  }
+}

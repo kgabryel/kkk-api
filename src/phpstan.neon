@@ -1,0 +1,62 @@
+parameters:
+	level: 8
+	treatPhpDocTypesAsCertain: false
+	paths:
+		- src
+		- tests
+	ignoreErrors:
+	    - '#type has no value type specified in iterable type array\.$#'
+	    - '#with no value type specified in iterable type array\.$#'
+	    -
+	        messages:
+	            - '#is never written, only read\.$#'
+	            - '#is never read, only written\.$#'
+	            - '# is unused.$#'
+	            - '#^Call to an undefined method Traversable\<int,#'
+	        path: 'src/Entity/*'
+	    -
+	        message: '#^Method App\\Service\\UserService\:\:getUser\(\) should return App\\Entity\\User but returns App\\Entity\\User\|null\.$#'
+	        path: src/Service/UserService.php
+	    -
+	        message: '#^Parameter \#1 \$ingredient of class App\\Dto\\Request\\Season constructor expects App\\Entity\\Ingredient, App\\Entity\\Ingredient\|null given\.$#'
+	        path: src/Validation/SeasonValidation.php
+	    -
+	        message: '#^Parameter \#1 \$portions of method App\\Entity\\Recipe\:\:setPortions\(\) expects int, int\|null given\.$#'
+	        path: src/Service/RecipeFillService.php
+	    -
+	        messages:
+	            - '#^Method App\\Service\\Auth\\FBAuthenticator\:\:getUser\(\) should return App\\Entity\\User but returns App\\Entity\\User\|null\.$#'
+	            - '#^Parameter \#1 \$token of method League\\OAuth2\\Client\\Provider\\Facebook\:\:getResourceOwner\(\) expects League\\OAuth2\\Client\\Token\\AccessToken, League\\OAuth2\\Client\\Token\\AccessTokenInterface given\.$#'
+	        path: 'src/Service/Auth/FBAuthenticator.php'
+	    -
+	        messages:
+	            - '#^Class App\\Repository\\RefreshTokenRepository implements generic interface Gesdinet\\JWTRefreshTokenBundle\\Doctrine\\RefreshTokenRepositoryInterface but does not specify its types\: T$#'
+	            - '#^Class Doctrine\\Bundle\\DoctrineBundle\\Repository\\LazyServiceEntityRepository specifies template type T#'
+	            - '#^Class Doctrine\\Bundle\\DoctrineBundle\\Repository\\ServiceEntityRepository specifies template type T#'
+	            - '#^Class Doctrine\\ORM\\EntityRepository specifies template type T#'
+	        path: 'src/Repository/RefreshTokenRepository.php'
+	    -
+	        message: '#^Method App\\Factory\\DtoFactoryDispatcher\:\:__construct\(\) has parameter \$factories with no value type specified in iterable type iterable\.$#'
+	        path: src/Factory/DtoFactoryDispatcher.php
+	    -
+	        message: '#^Parameter \#1 \$user of method App\\Validation\\ResetPasswordValidation\:\:getDto\(\) expects App\\Entity\\User, object given\.$#'
+	        path: src/Controller/ResetPasswordController.php
+	    -
+	        message: '#^Parameter \#1 \$content of method Symfony\\Component\\HttpFoundation\\Response\:\:setContent\(\) expects string\|null, string\|false given\.$#'
+	        path: src/Controller/PhotosController.php
+	    -
+	        messages:
+	            - '#^Cannot call method getId\(\) on Symfony\\Component\\Security\\Core\\User\\UserInterface\|null\.$#'
+	            - '#^Method App\\Controller\\BaseController\:\:getUser\(\) should return App\\Entity\\User but returns App\\Entity\\User\|null\.$#'
+	        path: 'src/Controller/BaseController.php'
+	    -
+	        messages:
+	            - '#has parameter \$[a-zA-Z0-9_]+ with generic class#'
+	            - '#contains unresolvable type#'
+	            - '#Cannot call method .* on .*?\|null#'
+	            - '#Property .* does not accept object#'
+	            - '#Call to an undefined method#'
+	            - '#, .* given#'
+	            - '# but returns .*#'
+	            - '# return type has no value type specified in iterable type iterable.#'
+	        path: 'tests/*'

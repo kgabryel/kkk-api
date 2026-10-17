@@ -1,0 +1,1 @@
+docker exec -it kkk-php sh -c 'PHP_CS_FIXER_IGNORE_ENV=1 php vendor/bin/php-cs-fixer fix'
