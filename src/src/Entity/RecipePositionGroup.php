@@ -26,7 +26,12 @@ class RecipePositionGroup
     /**
      * @var Collection<int, RecipePosition>
      */
-    #[ORM\OneToMany(targetEntity: RecipePosition::class, mappedBy: 'recipePositionGroup')]
+    #[ORM\OneToMany(
+        targetEntity: RecipePosition::class,
+        mappedBy: 'recipePositionGroup',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true,
+    )]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private Collection $recipePosition;
 

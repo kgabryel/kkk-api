@@ -44,7 +44,12 @@ class Recipe
     /**
      * @var Collection<int, RecipePositionGroup>
      */
-    #[ORM\OneToMany(targetEntity: RecipePositionGroup::class, mappedBy: 'recipe')]
+    #[ORM\OneToMany(
+        targetEntity: RecipePositionGroup::class,
+        mappedBy: 'recipe',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true,
+    )]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private Collection $recipePositionGroups;
 
@@ -58,7 +63,12 @@ class Recipe
     /**
      * @var Collection<int, Timer>
      */
-    #[ORM\OneToMany(targetEntity: Timer::class, mappedBy: 'recipe')]
+    #[ORM\OneToMany(
+        targetEntity: Timer::class,
+        mappedBy: 'recipe',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true,
+    )]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private Collection $timers;
 
