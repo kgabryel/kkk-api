@@ -50,7 +50,10 @@ class SeasonValidation extends EditSeasonValidation
 
     public function uniqueIngredient(int $value, ExecutionContextInterface $context): void
     {
-        $season = $this->seasonRepository->findById($value, $this->user);
+        $season = $this->seasonRepository->findOneBy([
+            'ingredient' => $value,
+            'user' => $this->user,
+        ]);
         if (!$season instanceof SeasonEntity) {
             return;
         }
