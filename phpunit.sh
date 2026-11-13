@@ -1,1 +1,1 @@
-docker exec -it kkk-php sh -c 'php -d memory_limit=512M vendor/bin/phpunit'
+docker exec -it kkk_php sh -c 'php -d memory_limit=512M vendor/bin/phpunit'

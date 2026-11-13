@@ -1,4 +1,4 @@
-docker exec -it kkk-php sh -c '
+docker exec -it kkk_php sh -c '
 echo "===== Composer Validate ====="
 composer validate --strict --no-check-publish && echo "===== Composer Validate =====" || echo "Composer validation failed."
 

@@ -1,1 +1,1 @@
-docker exec -it kkk-php sh -c 'php vendor/bin/phpstan --memory-limit=512M'
+docker exec -it kkk_php sh -c 'php vendor/bin/phpstan --memory-limit=512M'

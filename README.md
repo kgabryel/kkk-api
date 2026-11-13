@@ -18,12 +18,12 @@ API: `https://localhost.kkk`
 
 ## Wejście do kontenera PHP:
 ```
-docker exec -it kkk-php bash
+docker exec -it kkk_php bash
 ```
 
 ## Instalacja
 ```
-docker exec -it kkk-php bash
+docker exec -it kkk_php bash
 cp .env.example .env
 composer install
 bin/console lexik:jwt:generate-keypair

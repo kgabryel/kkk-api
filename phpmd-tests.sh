@@ -1,1 +1,1 @@
-docker exec -it kkk-php sh -c 'php vendor/bin/phpmd tests/ html phpmd-tests.xml --report-file var/phpmd-tests.html'
+docker exec -it kkk_php sh -c 'php vendor/bin/phpmd tests/ html phpmd-tests.xml --report-file var/phpmd-tests.html'
